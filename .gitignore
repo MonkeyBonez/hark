@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Xcode / SwiftPM build state
+DerivedData/
+.build/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+
+# Bundled LLM weights (~938MB) — restore by copying
+# mlx-community/Qwen3-1.7B-4bit (9 files) into HarkApp/Models/mlx-community__Qwen3-1.7B-4bit/
+HarkApp/Models/
+
+# Eval audio corpus + run artifacts (~484MB) — episodes re-downloadable via the RSS feeds
+# listed in HarkPipeline/docs/eval; ground-truth labels live in-tree under docs/eval/labels.
+HarkPipeline/.eval-corpus/

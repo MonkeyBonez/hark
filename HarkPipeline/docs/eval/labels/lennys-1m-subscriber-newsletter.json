@@ -1,0 +1,38 @@
+{
+  "episodeId": "lennys-1m-subscriber-newsletter",
+  "labeler": "agent-fable-transcript-read",
+  "ranges": [
+    {
+      "startMs": 94000,
+      "endMs": 109000,
+      "category": "selfpromo",
+      "note": "wife's book pre-order mention woven into intro",
+      "flagged": true
+    },
+    {
+      "startMs": 114000,
+      "endMs": 175000,
+      "category": "sponsor",
+      "note": "WorkOS read (starts at 'Here's a puzzle for you' segue)"
+    },
+    {
+      "startMs": 175000,
+      "endMs": 248000,
+      "category": "sponsor",
+      "note": "MetaView read, back-to-back with WorkOS, ends 'METAView.AI slash Lenny'"
+    },
+    {
+      "startMs": 2147000,
+      "endMs": 2190000,
+      "category": "sponsor",
+      "note": "DX mid-roll ('Today's episode is brought to you by DX' to 'getdx.com slash Lenny')"
+    },
+    {
+      "startMs": 3988000,
+      "endMs": 4009000,
+      "category": "selfpromo",
+      "note": "outro subscribe/rate/review + site",
+      "flagged": true
+    }
+  ]
+}

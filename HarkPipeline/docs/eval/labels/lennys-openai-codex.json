@@ -1,0 +1,31 @@
+{
+  "episodeId": "lennys-openai-codex",
+  "labeler": "agent-fable-transcript-read",
+  "ranges": [
+    {
+      "startMs": 134000,
+      "endMs": 146000,
+      "category": "selfpromo",
+      "note": "Lenny's Product Pass promo in intro"
+    },
+    {
+      "startMs": 322000,
+      "endMs": 392000,
+      "category": "sponsor",
+      "note": "WorkOS presenting-sponsor read"
+    },
+    {
+      "startMs": 2043000,
+      "endMs": 2116000,
+      "category": "sponsor",
+      "note": "Mercury mid-roll incl. FDIC disclaimer"
+    },
+    {
+      "startMs": 3997000,
+      "endMs": 4017000,
+      "category": "selfpromo",
+      "note": "outro subscribe/rate/review + site \u2014 interaction reminder, arguably not skippable-ad",
+      "flagged": true
+    }
+  ]
+}

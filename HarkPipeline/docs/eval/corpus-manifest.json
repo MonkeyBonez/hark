@@ -1,0 +1,58 @@
+[
+  {
+    "slug": "allin-ackman",
+    "show": "All-In Podcast",
+    "episodeTitle": "Bill Ackman: Investment Strategy, What the Market is Missing, How AI Breaks Businesses",
+    "feed": "https://rss.libsyn.com/shows/254861/destinations/1928300.xml",
+    "enclosureUrl": "https://dts.podtrac.com/redirect.mp3/traffic.libsyn.com/secure/allinchamathjason/Ackman_Ch.mp3?dest-id=1928300",
+    "note": "DAI shows may serve different ads per download; ad labels in labels/ were made against the 2026-07-08 first download"
+  },
+  {
+    "slug": "founders-402-peterffy",
+    "show": "Founders David Senra",
+    "episodeTitle": "#402 Thomas Peterffy: The $80 Billion Founder Who Automates Everything",
+    "feed": "https://feeds.megaphone.fm/DSLLC6297708582",
+    "enclosureUrl": "https://traffic.megaphone.fm/DSLLC2329734741.mp3?updated=1764796568",
+    "note": "DAI shows may serve different ads per download; ad labels in labels/ were made against the 2026-07-08 first download"
+  },
+  {
+    "slug": "founders-413-run-down-dream",
+    "show": "Founders David Senra",
+    "episodeTitle": "#413 How To Run Down A Dream",
+    "feed": "https://feeds.megaphone.fm/DSLLC6297708582",
+    "enclosureUrl": "https://traffic.megaphone.fm/DSLLC1554020959.mp3?updated=1772499344",
+    "note": "DAI shows may serve different ads per download; ad labels in labels/ were made against the 2026-07-08 first download"
+  },
+  {
+    "slug": "lennys-1m-subscriber-newsletter",
+    "show": "Lenny's Podcast",
+    "episodeTitle": "How I built a 1M+ subscriber newsletter and top 10 tech podcast | Lenny Rachitsky",
+    "feed": "https://api.substack.com/feed/podcast/10845.rss",
+    "enclosureUrl": "https://api.substack.com/feed/podcast/189915507/1399f6fbed5bd0667093b62756f72612.mp3",
+    "note": "duration 4013s matches label file (outro ends 66:49)"
+  },
+  {
+    "slug": "lennys-openai-codex",
+    "show": "Lenny's Podcast",
+    "episodeTitle": "OpenAI Codex lead on the new shape of product work | Andrew Ambrosino",
+    "feed": "https://api.substack.com/feed/podcast/10845.rss",
+    "enclosureUrl": "https://api.substack.com/feed/podcast/202769820/f1d1b9d8062b6e88e7f978a8e8763bde.mp3",
+    "note": "duration 4196s matches label file (outro at 66:37)"
+  },
+  {
+    "slug": "radiolab-forests",
+    "show": "Radiolab",
+    "episodeTitle": "Forests on Forests",
+    "feed": "https://feeds.simplecast.com/EmVW7VGp",
+    "enclosureUrl": "https://pscrb.fm/rss/p/mgln.ai/e/14/prfx.byspotify.com/e/dts.podtrac.com/pts/redirect.mp3/waaa.wnyc.org/758af4c0-a2c3-47ec-a2d8-05f41bfbde51/episodes/4446466a-e553-4b43-9dcd-a5943222431b/audio/128/default.mp3?aid=rss_feed&awCollectionId=758af4c0-a2c3-47ec-a2d8-05f41bfbde51&awEpisodeId=4446466a-e553-4b43-9dcd-a5943222431b&feed=EmVW7VGp",
+    "note": "DAI shows may serve different ads per download; ad labels in labels/ were made against the 2026-07-08 first download"
+  },
+  {
+    "slug": "restishistory-empress-matilda",
+    "show": "The Rest Is History",
+    "episodeTitle": "Empress Matilda: Civil War and the Fight for the Throne",
+    "feed": "https://feeds.megaphone.fm/GLT4787413333",
+    "enclosureUrl": "https://pdst.fm/e/traffic.megaphone.fm/GLT3399401666.mp3",
+    "note": "DAI shows may serve different ads per download; ad labels in labels/ were made against the 2026-07-08 first download"
+  }
+]

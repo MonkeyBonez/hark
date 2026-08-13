@@ -1,0 +1,574 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2610426051A6035211880368 /* HarkCore in Frameworks */ = {isa = PBXBuildFile; productRef = 1E7D6568E0868EF69C9C7CA8 /* HarkCore */; };
+		2DB701EAE6ABFE30ECE927B6 /* SnipDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072FA6CD3A29778C7925D85E /* SnipDetailView.swift */; };
+		31D54925C50A27A35AD2F490 /* ProcessingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB48AC514ADF79BBA0123EF /* ProcessingService.swift */; };
+		35AEB6AA1355D3417544979B /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE489F23F8E198E6A2B6C15A /* DiscoverView.swift */; };
+		37D2726D386C8974C1A45D65 /* Models in Resources */ = {isa = PBXBuildFile; fileRef = 1545DADDD34627EFA72E5229 /* Models */; };
+		3AE7C485231635A6F620A904 /* ITunesSearchClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09759935616809A5CEF5E111 /* ITunesSearchClient.swift */; };
+		458E23CBF30C35AC3E13051E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09283C0B100B6363486F899 /* HomeView.swift */; };
+		4A3DECB25A7AC612946AC4A2 /* YouView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A672C29D506DF0AECEEC44D /* YouView.swift */; };
+		4E03AC1BECB8CDEB659ACAED /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 871AB65217D81656C355BDD9 /* SubscriptionStore.swift */; };
+		4E095BF2C01D3B1CEE1720A9 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DA6110CE9C7C038B90E04E2 /* Components.swift */; };
+		58897A248A015FEE8C718FC8 /* PlayerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80030AC0D61F22A0CEE0300 /* PlayerEngine.swift */; };
+		6F086B0926E6060B1265BB16 /* FeedParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 971E5D3B9846F84E947BA82F /* FeedParser.swift */; };
+		763AFDEE52904A5161ADC871 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 8BAF51833CB3D8EBBF4C18AD /* GRDB */; };
+		78D665191B8D8468194ADE07 /* HarkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AF9DF0E405BBD32B4C2B96 /* HarkApp.swift */; };
+		7CF2045D5FFECCBE2591F7F4 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7831B1BB99921F88B764E44E /* PlayerView.swift */; };
+		8806877C1132F39A52EE5679 /* TranscriptFollowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A46BC8CCBAE5952186D806D /* TranscriptFollowView.swift */; };
+		9C00343C90780BF5CD7E1062 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D47CC9F1A678A542EF0D01A /* AppDatabase.swift */; };
+		BE80578C39993FD77E79F8F5 /* TwinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7BC464B2479444E1A25BF4 /* TwinApp.swift */; };
+		CEC53F76839F52685928DAB0 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5046C9356C70C5D12AC790A8 /* Records.swift */; };
+		D66505A7267853D1AE036620 /* HarkCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFE185F4A5258CE285ADE97 /* HarkCore */; };
+		E3D410E435A36FDF90C42608 /* SnipsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3EDEBD36AF175AFBDB0E4CD /* SnipsView.swift */; };
+		F6C7128F6214BFD3ADEF3FB5 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7C88881D6773643A6D3B322 /* DownloadManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		072FA6CD3A29778C7925D85E /* SnipDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnipDetailView.swift; sourceTree = "<group>"; };
+		09759935616809A5CEF5E111 /* ITunesSearchClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ITunesSearchClient.swift; sourceTree = "<group>"; };
+		0DA6110CE9C7C038B90E04E2 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		1545DADDD34627EFA72E5229 /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Models; sourceTree = SOURCE_ROOT; };
+		1A672C29D506DF0AECEEC44D /* YouView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouView.swift; sourceTree = "<group>"; };
+		2F17D11A4E3BEE37B0FFDF98 /* Hark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hark.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4571F23821D7A93EB969AB11 /* HarkTwin.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HarkTwin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4AB48AC514ADF79BBA0123EF /* ProcessingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingService.swift; sourceTree = "<group>"; };
+		5046C9356C70C5D12AC790A8 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
+		5D47CC9F1A678A542EF0D01A /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
+		7831B1BB99921F88B764E44E /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		7A46BC8CCBAE5952186D806D /* TranscriptFollowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptFollowView.swift; sourceTree = "<group>"; };
+		81AF9DF0E405BBD32B4C2B96 /* HarkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarkApp.swift; sourceTree = "<group>"; };
+		871AB65217D81656C355BDD9 /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStore.swift; sourceTree = "<group>"; };
+		971E5D3B9846F84E947BA82F /* FeedParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedParser.swift; sourceTree = "<group>"; };
+		9E7BC464B2479444E1A25BF4 /* TwinApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwinApp.swift; sourceTree = "<group>"; };
+		A3EDEBD36AF175AFBDB0E4CD /* SnipsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnipsView.swift; sourceTree = "<group>"; };
+		C09283C0B100B6363486F899 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		C46750498DB9AF060465C1D8 /* HarkPipeline */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HarkPipeline; path = ../HarkPipeline; sourceTree = SOURCE_ROOT; };
+		C7C88881D6773643A6D3B322 /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
+		D80030AC0D61F22A0CEE0300 /* PlayerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEngine.swift; sourceTree = "<group>"; };
+		DE489F23F8E198E6A2B6C15A /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		01A670DDAF62B24AADC4F738 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763AFDEE52904A5161ADC871 /* GRDB in Frameworks */,
+				2610426051A6035211880368 /* HarkCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2D5625E01B75CB8BA4C73DCB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D66505A7267853D1AE036620 /* HarkCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1EEC2CE3ADF379B2E96F5659 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				5D47CC9F1A678A542EF0D01A /* AppDatabase.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		2F0B19848589F9F671B99FF1 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				81AF9DF0E405BBD32B4C2B96 /* HarkApp.swift */,
+				F11739AAC26D08E20787BB88 /* Models */,
+				97D2F5D46C5A0357FBB13062 /* Services */,
+				1EEC2CE3ADF379B2E96F5659 /* Support */,
+				38B4732F39DBD70FACD77F31 /* UI */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		38B4732F39DBD70FACD77F31 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				0DA6110CE9C7C038B90E04E2 /* Components.swift */,
+				DE489F23F8E198E6A2B6C15A /* DiscoverView.swift */,
+				C09283C0B100B6363486F899 /* HomeView.swift */,
+				7831B1BB99921F88B764E44E /* PlayerView.swift */,
+				072FA6CD3A29778C7925D85E /* SnipDetailView.swift */,
+				A3EDEBD36AF175AFBDB0E4CD /* SnipsView.swift */,
+				7A46BC8CCBAE5952186D806D /* TranscriptFollowView.swift */,
+				1A672C29D506DF0AECEEC44D /* YouView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		5FEAE09DB042DCAAC9A82BAD = {
+			isa = PBXGroup;
+			children = (
+				1545DADDD34627EFA72E5229 /* Models */,
+				A6E34B5EC06DBB32E2318EA2 /* Packages */,
+				2F0B19848589F9F671B99FF1 /* Sources */,
+				CD6FB5ACFF4F0AAF8284E1EE /* TwinSources */,
+				F98DEE1873BC167E0E213D0F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		97D2F5D46C5A0357FBB13062 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				C7C88881D6773643A6D3B322 /* DownloadManager.swift */,
+				971E5D3B9846F84E947BA82F /* FeedParser.swift */,
+				09759935616809A5CEF5E111 /* ITunesSearchClient.swift */,
+				D80030AC0D61F22A0CEE0300 /* PlayerEngine.swift */,
+				4AB48AC514ADF79BBA0123EF /* ProcessingService.swift */,
+				871AB65217D81656C355BDD9 /* SubscriptionStore.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A6E34B5EC06DBB32E2318EA2 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				C46750498DB9AF060465C1D8 /* HarkPipeline */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		CD6FB5ACFF4F0AAF8284E1EE /* TwinSources */ = {
+			isa = PBXGroup;
+			children = (
+				9E7BC464B2479444E1A25BF4 /* TwinApp.swift */,
+			);
+			path = TwinSources;
+			sourceTree = "<group>";
+		};
+		F11739AAC26D08E20787BB88 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				5046C9356C70C5D12AC790A8 /* Records.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		F98DEE1873BC167E0E213D0F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2F17D11A4E3BEE37B0FFDF98 /* Hark.app */,
+				4571F23821D7A93EB969AB11 /* HarkTwin.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0E21F25E71190A808A8ABD37 /* Hark */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 90925ADBC77385905722C201 /* Build configuration list for PBXNativeTarget "Hark" */;
+			buildPhases = (
+				C18129426C4A1011F96F3FD8 /* Sources */,
+				F57F97FE2D30F3DA354688CF /* Resources */,
+				01A670DDAF62B24AADC4F738 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Hark;
+			packageProductDependencies = (
+				8BAF51833CB3D8EBBF4C18AD /* GRDB */,
+				1E7D6568E0868EF69C9C7CA8 /* HarkCore */,
+			);
+			productName = Hark;
+			productReference = 2F17D11A4E3BEE37B0FFDF98 /* Hark.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4EAA913CA6D242AA134F20F3 /* HarkTwin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 82A325C0E7CE84CF97FDE3D3 /* Build configuration list for PBXNativeTarget "HarkTwin" */;
+			buildPhases = (
+				96236D4179931701C44E2788 /* Sources */,
+				2D5625E01B75CB8BA4C73DCB /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HarkTwin;
+			packageProductDependencies = (
+				6AFE185F4A5258CE285ADE97 /* HarkCore */,
+			);
+			productName = HarkTwin;
+			productReference = 4571F23821D7A93EB969AB11 /* HarkTwin.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CF7BDE41791DD6FBEBF6ACE1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					0E21F25E71190A808A8ABD37 = {
+						ProvisioningStyle = Automatic;
+					};
+					4EAA913CA6D242AA134F20F3 = {
+						DevelopmentTeam = X2M53BTDS3;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 16B7DDAAE4656FE656E7E393 /* Build configuration list for PBXProject "HarkApp" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5FEAE09DB042DCAAC9A82BAD;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8AECAC924006378BD5C24583 /* XCRemoteSwiftPackageReference "GRDB" */,
+				3DCBA5C10CEF08213927D802 /* XCLocalSwiftPackageReference "../HarkPipeline" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F98DEE1873BC167E0E213D0F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0E21F25E71190A808A8ABD37 /* Hark */,
+				4EAA913CA6D242AA134F20F3 /* HarkTwin */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F57F97FE2D30F3DA354688CF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37D2726D386C8974C1A45D65 /* Models in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		96236D4179931701C44E2788 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE80578C39993FD77E79F8F5 /* TwinApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C18129426C4A1011F96F3FD8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C00343C90780BF5CD7E1062 /* AppDatabase.swift in Sources */,
+				4E095BF2C01D3B1CEE1720A9 /* Components.swift in Sources */,
+				35AEB6AA1355D3417544979B /* DiscoverView.swift in Sources */,
+				F6C7128F6214BFD3ADEF3FB5 /* DownloadManager.swift in Sources */,
+				6F086B0926E6060B1265BB16 /* FeedParser.swift in Sources */,
+				78D665191B8D8468194ADE07 /* HarkApp.swift in Sources */,
+				458E23CBF30C35AC3E13051E /* HomeView.swift in Sources */,
+				3AE7C485231635A6F620A904 /* ITunesSearchClient.swift in Sources */,
+				58897A248A015FEE8C718FC8 /* PlayerEngine.swift in Sources */,
+				7CF2045D5FFECCBE2591F7F4 /* PlayerView.swift in Sources */,
+				31D54925C50A27A35AD2F490 /* ProcessingService.swift in Sources */,
+				CEC53F76839F52685928DAB0 /* Records.swift in Sources */,
+				2DB701EAE6ABFE30ECE927B6 /* SnipDetailView.swift in Sources */,
+				E3D410E435A36FDF90C42608 /* SnipsView.swift in Sources */,
+				4E03AC1BECB8CDEB659ACAED /* SubscriptionStore.swift in Sources */,
+				8806877C1132F39A52EE5679 /* TranscriptFollowView.swift in Sources */,
+				4A3DECB25A7AC612946AC4A2 /* YouView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		07925B7370C03557B8FE57C4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = X2M53BTDS3;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Generated/TwinInfo.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.snehal.HarkTwin;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		1D785ABA19D5EF60CC6A4EAB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FMDJTXM4W7;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Generated/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.snehal.Hark;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		3245876AB1052971A574525B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		994D967D148CE7C36CF77158 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = X2M53BTDS3;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Generated/TwinInfo.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.snehal.HarkTwin;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		9C3A40EABB53C3F614CD5AC0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FMDJTXM4W7;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Generated/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.snehal.Hark;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		CBE0F9AC8BF1C7385DF3F6C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		16B7DDAAE4656FE656E7E393 /* Build configuration list for PBXProject "HarkApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CBE0F9AC8BF1C7385DF3F6C3 /* Debug */,
+				3245876AB1052971A574525B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		82A325C0E7CE84CF97FDE3D3 /* Build configuration list for PBXNativeTarget "HarkTwin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				994D967D148CE7C36CF77158 /* Debug */,
+				07925B7370C03557B8FE57C4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		90925ADBC77385905722C201 /* Build configuration list for PBXNativeTarget "Hark" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C3A40EABB53C3F614CD5AC0 /* Debug */,
+				1D785ABA19D5EF60CC6A4EAB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		3DCBA5C10CEF08213927D802 /* XCLocalSwiftPackageReference "../HarkPipeline" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../HarkPipeline;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8AECAC924006378BD5C24583 /* XCRemoteSwiftPackageReference "GRDB" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1E7D6568E0868EF69C9C7CA8 /* HarkCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HarkCore;
+		};
+		6AFE185F4A5258CE285ADE97 /* HarkCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HarkCore;
+		};
+		8BAF51833CB3D8EBBF4C18AD /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AECAC924006378BD5C24583 /* XCRemoteSwiftPackageReference "GRDB" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = CF7BDE41791DD6FBEBF6ACE1 /* Project object */;
+}

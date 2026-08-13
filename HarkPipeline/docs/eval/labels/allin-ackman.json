@@ -1,0 +1,13 @@
+{
+  "episodeId": "allin-ackman",
+  "labeler": "agent-fable-transcript-read",
+  "ranges": [
+    {
+      "startMs": 1584000,
+      "endMs": 1701000,
+      "category": "selfpromo",
+      "note": "Ackman describes his own investment vehicles when hosts ask 'how do we invest with you' \u2014 editorial interview content, NOT paid; zero sponsor reads exist in this episode",
+      "flagged": true
+    }
+  ]
+}

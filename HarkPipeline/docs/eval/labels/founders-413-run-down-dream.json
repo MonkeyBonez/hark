@@ -1,0 +1,39 @@
+{
+  "episodeId": "founders-413-run-down-dream",
+  "labeler": "agent-fable-transcript-read",
+  "ranges": [
+    {
+      "startMs": 745000,
+      "endMs": 751000,
+      "category": "sponsor",
+      "note": "Ramp segue sentence ('...that is exactly what Ramp did') \u2014 half content, half ad pivot",
+      "flagged": true
+    },
+    {
+      "startMs": 751000,
+      "endMs": 804000,
+      "category": "sponsor",
+      "note": "Ramp host-read, ends 'That is ramp.com'"
+    },
+    {
+      "startMs": 1177000,
+      "endMs": 1240000,
+      "category": "sponsor",
+      "note": "Vanta host-read, 'real quick before we get back...' to 'vanta.com forward slash founders'"
+    },
+    {
+      "startMs": 964000,
+      "endMs": 967000,
+      "category": "selfpromo",
+      "note": "mentions own episode 259",
+      "flagged": true
+    },
+    {
+      "startMs": 1016000,
+      "endMs": 1021000,
+      "category": "selfpromo",
+      "note": "mentions own episode 20",
+      "flagged": true
+    }
+  ]
+}

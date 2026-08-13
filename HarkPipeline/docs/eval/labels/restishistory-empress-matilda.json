@@ -1,0 +1,54 @@
+{
+  "episodeId": "restishistory-empress-matilda",
+  "labeler": "agent-fable-transcript-read",
+  "ranges": [
+    {
+      "startMs": 0,
+      "endMs": 29000,
+      "category": "sponsor",
+      "note": "DAI pre-roll: Hilton Honors (Paris Hilton)"
+    },
+    {
+      "startMs": 29000,
+      "endMs": 58000,
+      "category": "sponsor",
+      "note": "DAI pre-roll: Home Depot"
+    },
+    {
+      "startMs": 59000,
+      "endMs": 89000,
+      "category": "sponsor",
+      "note": "DAI pre-roll: Meta glasses"
+    },
+    {
+      "startMs": 115000,
+      "endMs": 126000,
+      "category": "selfpromo",
+      "note": "Rest Is History Club promo in intro"
+    },
+    {
+      "startMs": 2522000,
+      "endMs": 2542000,
+      "category": "selfpromo",
+      "note": "club signup promo at episode end"
+    },
+    {
+      "startMs": 2550000,
+      "endMs": 2580000,
+      "category": "sponsor",
+      "note": "DAI post-roll: Ralph's grocery"
+    },
+    {
+      "startMs": 2583000,
+      "endMs": 2707000,
+      "category": "selfpromo",
+      "note": "produced merch segment (football shirts, restishistory.com/merch)"
+    },
+    {
+      "startMs": 2707000,
+      "endMs": 2775000,
+      "category": "crosspromo",
+      "note": "sister podcast The Book Club promo"
+    }
+  ]
+}

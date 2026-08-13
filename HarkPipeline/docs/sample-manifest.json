@@ -1,0 +1,22 @@
+{
+  "episodes": [
+    {
+      "id": "sample-ep-01",
+      "audioPath": "audio/sample-ep-01.m4a",
+      "audioSeconds": 3600,
+      "referenceTranscriptPath": null,
+      "labeledAdRanges": null,
+      "tags": ["two-host", "music-bed"]
+    },
+    {
+      "id": "sample-ep-02",
+      "audioPath": "audio/sample-ep-02.m4a",
+      "audioSeconds": 5400,
+      "referenceTranscriptPath": null,
+      "labeledAdRanges": [
+        { "startMs": 1200000, "endMs": 1290000 }
+      ],
+      "tags": ["interview", "dynamic-ads", "crosstalk"]
+    }
+  ]
+}

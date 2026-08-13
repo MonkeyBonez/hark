@@ -1,0 +1,24 @@
+{
+  "episodeId": "founders-402-peterffy",
+  "labeler": "agent-fable-transcript-read",
+  "ranges": [
+    {
+      "startMs": 354000,
+      "endMs": 394000,
+      "category": "sponsor",
+      "note": "Ramp host-read ('...exactly what the presenting sponsor of this podcast ramp does' to 'going to ramp.com')"
+    },
+    {
+      "startMs": 713000,
+      "endMs": 760000,
+      "category": "sponsor",
+      "note": "Vanta host-read ('This is exactly what my partner, Vanta, does' to 'vanta.com forward slash founders')"
+    },
+    {
+      "startMs": 1705000,
+      "endMs": 1750000,
+      "category": "sponsor",
+      "note": "Collateral host-read ('That is exactly what my partner collateral does' to 'going to collateral.com')"
+    }
+  ]
+}

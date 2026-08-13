@@ -1,0 +1,78 @@
+name: HarkApp
+options:
+  bundleIdPrefix: com.snehal
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+packages:
+  GRDB:
+    url: https://github.com/groue/GRDB.swift
+    from: 7.0.0
+  HarkPipeline:
+    path: ../HarkPipeline
+targets:
+  Hark:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+      # Bundled LLM weights (D38): Qwen3-1.7B-4bit shipped inside the app so first launch needs
+      # zero network. Folder reference (type: folder) preserves the directory tree, so the runtime
+      # path is Models/mlx-community__Qwen3-1.7B-4bit/ — where MLXModelStore.bundledDirectory looks.
+      # HarkTwin deliberately omits this (keeps the download path — it's a throwaway budget tool).
+      - path: Models
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: GRDB
+        product: GRDB
+      - package: HarkPipeline
+        product: HarkCore
+    info:
+      path: Generated/Info.plist
+      properties:
+        CFBundleDisplayName: Hark
+        UILaunchScreen: {}
+        UIBackgroundModes: [audio]
+        # Podcast enclosures/artwork are still frequently plain http.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    # NOTE: PRD §9.6 wants com.apple.developer.kernel.increased-memory-limit from day one, but a
+    # personal (free) signing team can't provision it — re-add the entitlements block when a paid
+    # team exists. The 1.7B model (~1GB) fits the default ceiling on the 6GB floor device.
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: X2M53BTDS3
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+        GENERATE_INFOPLIST_FILE: NO
+
+  # Device twin — the on-device budget reporter (docs/device-twin-spec.md). Never shipped.
+  # One screen: Run → per-stage RTF / peak RSS / thermal, share JSON. Needs a physical iPhone
+  # for meaningful numbers (simulator has no ANE and no Apple Intelligence).
+  HarkTwin:
+    type: application
+    platform: iOS
+    sources: [TwinSources]
+    dependencies:
+      - package: HarkPipeline
+        product: HarkCore
+    info:
+      path: Generated/TwinInfo.plist
+      properties:
+        CFBundleDisplayName: HarkTwin
+        UILaunchScreen: {}
+        UIBackgroundModes: [audio]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    # increased-memory-limit entitlement removed pending a paid team (same note as Hark target).
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: X2M53BTDS3
+        GENERATE_INFOPLIST_FILE: NO

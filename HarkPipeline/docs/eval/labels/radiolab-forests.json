@@ -1,0 +1,20 @@
+{
+  "episodeId": "radiolab-forests",
+  "labeler": "agent-fable-transcript-read",
+  "ranges": [
+    {
+      "startMs": 735000,
+      "endMs": 758000,
+      "category": "sponsor",
+      "note": "announced ad break ('right after this short break') \u2014 21s untranscribed gap; may be music-only/unfilled DAI slot. AUDIT BY LISTENING",
+      "flagged": true
+    },
+    {
+      "startMs": 1167000,
+      "endMs": 1182000,
+      "category": "sponsor",
+      "note": "public-radio underwriting credits (Simons/Templeton/Sloan Foundations) \u2014 no CTA, arguably credits not ad",
+      "flagged": true
+    }
+  ]
+}
