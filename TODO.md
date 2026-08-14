@@ -5,18 +5,19 @@ intelligence roadmap runs through approaches that never feed the model more than
 
 ## Explore: embeddings & lightweight models (added 2026-08-13)
 
-- [ ] **Embedding search over snips + transcript.** Embed per-segment (small windows — no
-      whole-transcript pass, so no crash risk) and search semantically. Pieces that already exist:
-      `NLContextualEmbeddingEngine` in HarkCore (512-dim, zero-download) and the FTS5 index over
-      `transcriptSegment` (populated, no UI yet). Prior bench result: NLContextualEmbedding scored
-      Recall@3 0.55 vs the 0.90 gate — plan was hybrid FTS5 + embeddings, with a bge-small
-      bake-off queued. Start there.
-- [ ] **Ad detection → auto-skip via a lightweight dedicated model.** General-LLM classification
-      topped out ~0.5 F1 (precision is the weak spot); the ≥0.85 auto-skip gate needs a dedicated
-      classifier. Explore: (a) an existing off-the-shelf model (none found in earlier research —
-      re-check periodically), (b) training our own small classifier (embeddings + logistic head or
-      a tiny fine-tune) on the 7-episode labeled corpus in `HarkPipeline/docs/eval/labels/`,
-      grown with more labeled episodes. Runs per-segment — device-safe by construction.
+- [x] **Embedding search over snips + transcript — POC done, works.** See `poc/FINDINGS.md`:
+      MiniLM/bge-small (22–33M, ANE-class) hit R@3 0.816–0.857 vs NLContextualEmbedding's 0.55;
+      RAG-style rerank (retrieve top-10 → bundled Qwen3-1.7B picks 3) reaches **0.878** at
+      0.46s/query on Mac; R@10 ceiling 0.98, so the 0.90 gate is reachable. Next: convert
+      MiniLM/bge to CoreML (SimilaritySearchKit has ready conversions), embed at transcription
+      time, hybrid FTS5+vector, then wire the search UI.
+- [x] **Ad detection lightweight model — POC done, beats the LLM pipeline.** See
+      `poc/FINDINGS.md`: bge-small embeddings + logistic regression alone ≈ 0.49 median
+      sponsor-F1 (matches full per-line-LLM pipeline at zero LLM cost); classifier candidates +
+      per-block Qwen verify = **0.580** vs 0.515 shipped, with 50–100× fewer LLM calls. No
+      pretrained open model exists (re-confirmed). Path to the 0.85 auto-skip gate: weak
+      supervision — LLM-as-teacher auto-labels 20–50 more episodes (esp. produced/NPR styles),
+      classifier-as-student retrains. Next experiment: scale training data that way.
 
 ## Backlog (agreed earlier)
 

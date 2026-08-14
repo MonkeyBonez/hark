@@ -15,3 +15,7 @@ HarkApp/Models/
 # Eval audio corpus + run artifacts (~484MB) — episodes re-downloadable via the RSS feeds
 # listed in HarkPipeline/docs/eval; ground-truth labels live in-tree under docs/eval/labels.
 HarkPipeline/.eval-corpus/
+
+# POC venv (poc/)
+poc/.venv/
+__pycache__/
