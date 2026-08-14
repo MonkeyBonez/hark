@@ -101,6 +101,46 @@ Sonnet's radiolab 0.15 is **not** a judgment failure — two mechanical artifact
 
 Corrected for both, Sonnet's radiolab is ~0.97 — i.e. **teacher quality is not the bottleneck**.
 
+### Local teachers: can this Mac label the silver data itself? (`local_teacher.py`)
+
+The teacher runs on the Mac (M4 Pro, 24GB), not the phone, so it can be far bigger than the
+bundled 1.7B — only the student has to fit an iPhone. Same task and scoring; the transcript is fed
+in overlapping 60-line windows (context never grows with episode length) and the model answers
+with line indices, not timestamps — small models copy `12-18` reliably and `0:12:15` badly.
+
+| model | size | median sponsor-F1 | sec/episode |
+|---|---|---|---|
+| Qwen3-1.7B-4bit (the bundled one) | 0.9GB | 0.175 | 10 |
+| Qwen3-4B-Instruct-2507-4bit | 2.1GB | 0.620 | 22 |
+| Qwen3-8B-4bit | 4.3GB | 0.815 | 38 |
+| Qwen3-8B-4bit **+ verify pass** | 4.3GB | **0.823** | 40 |
+| *(reference)* Haiku 4.5 | API | 0.957 | — |
+| *(reference)* Sonnet 5 | API | 1.000 | — |
+
+Quality scales steeply with size and the verify pass buys precision as it always has (founders-402
+0.85→0.95 precision, lennys-1m 0.89→0.96). **On host-read episodes the local 8B is already at
+0.86/0.96/0.98/0.82** — over the 0.85 gate. Its two zeros are the same edge cases everything else
+trips on: an ad-free episode where one false positive survived verify, and radiolab (whose
+text-visible ceiling is 0.46 regardless of model).
+
+### Does the student lose anything learning from teacher labels? (`silver_student.py`)
+
+The whole silver plan rests on one assumption — that a student trained on LLM labels is as good as
+one trained on human labels. Testable now, because both teachers labeled the same 7 episodes the
+humans did. Identical pipeline (bge-small + logistic head, leave-one-episode-out, fixed threshold
+0.6), only the *training labels* differ; all three are evaluated against human gold:
+
+| student trained on | median sponsor-F1 vs gold |
+|---|---|
+| human gold labels | 0.437 |
+| Haiku labels | 0.386 |
+| Sonnet labels | **0.534** |
+
+The Sonnet-trained student beat the gold-trained one. At n=7 with this much per-episode variance
+these gaps are **within noise** — which is exactly the point: **teacher labels cost the student
+nothing measurable.** The assumption holds, so the constraint on student quality is corpus size
+and style coverage, which is what silver labeling exists to fix.
+
 ### Side finding: silent gaps as an ad signal (`gap_signal.py`)
 
 Gaps ≥5s between consecutive segments exist in only the 2 produced shows (host-read episodes have
