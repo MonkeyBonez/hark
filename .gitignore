@@ -19,3 +19,6 @@ HarkPipeline/.eval-corpus/
 # POC venv (poc/)
 poc/.venv/
 __pycache__/
+
+# Teacher-eval transcripts (regenerate: python3 poc/teacher_eval.py prep)
+poc/teacher_eval/transcripts/

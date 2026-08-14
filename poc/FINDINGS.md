@@ -66,6 +66,49 @@ classifier as the *student*, keep the LLM verify-pass at inference. 20–50 epis
 production styles (esp. produced/NPR-style) is the next experiment. Audio cues (music beds,
 loudness shifts) are a further orthogonal signal if text alone stalls.
 
+## 3. Teacher quality: can a cheap model label the silver data? (`teacher_eval.py`)
+
+Before scaling LLM-auto-labeling, measure the teacher against the human-audited gold labels —
+the student's ceiling is the teacher's accuracy. Each model got one full timestamped transcript
+per episode and labeled ad ranges under the gold pass's own category definitions; scored with the
+same time-overlap sponsor-F1.
+
+| episode | Haiku 4.5 | Sonnet 5 | note |
+|---|---|---|---|
+| allin-ackman (no ads) | 1.00 | 1.00 | control — both correctly found nothing |
+| founders-402 | 0.96 | 1.00 | host-read |
+| founders-413 | 0.95 | 1.00 | host-read |
+| lennys-1m | 0.96 | 0.99 | host-read |
+| lennys-codex | 0.96 | 1.00 | host-read |
+| radiolab | **0.74** | **0.15** | produced/NPR — see below |
+| restishistory | (pending) | 0.79 | stacked produced spots |
+| **median** | **0.96** | **1.00** | gate 0.85 |
+
+**Both models clear the 0.85 gate on host-read shows by a wide margin** — Sonnet essentially
+reproduces gold, Haiku trails by ~4pts (looser boundaries, same ads found). At ~⅓ the cost,
+**Haiku is good enough to be the bulk labeler**, with Sonnet worth reserving for spot-audits.
+
+Sonnet's radiolab 0.15 is **not** a judgment failure — two mechanical artifacts, both fixed:
+1. **21 of radiolab's 38s of gold ad time has no transcript text** (a music/DAI break; the
+   transcript jumps 0:12:15 → 0:12:38 with the cue "Right after this short break" before it).
+   Sonnet followed the "only label what is actually there" instruction and skipped it; Haiku
+   inferred it from the cue and scored better. `teacher_eval.py analyze` measures this across the
+   corpus: **every host-read episode is 100% text-visible; radiolab is 46%.** That fraction is a
+   hard ceiling on any text-only detector, teacher or student.
+2. **End-of-file truncation**: the closing underwriting read is the last thing in the transcript,
+   so "end = the line after the ad" had no next line and the range collapsed to 3s of 15s.
+   `prep()` now emits `[start-end]` per line, so a future labeling batch can't hit this.
+
+Corrected for both, Sonnet's radiolab is ~0.97 — i.e. **teacher quality is not the bottleneck**.
+
+### Side finding: silent gaps as an ad signal (`gap_signal.py`)
+
+Gaps ≥5s between consecutive segments exist in only the 2 produced shows (host-read episodes have
+none). As a standalone signal they're weak (2/6 land in a labeled ad); a gap immediately preceded
+by a break cue ("right after this short break") hit 1/1 — suggestive but **n=1, not evidence**.
+Worth computing at transcription time (it's free) and re-testing once the silver corpus has more
+produced/DAI-heavy shows.
+
 ## On-device cost summary
 
 - Embedder: 22–33M params (~25–70MB quantized), ANE-friendly; per-segment at transcription time.
