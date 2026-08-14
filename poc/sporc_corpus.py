@@ -27,6 +27,11 @@ from huggingface_hub import HfApi, hf_hub_download
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "sporc" / "episodes"
 REPO = "blitt/SPoRC"
+# Deliberately mild. A stricter filter (>=25 episodes) moved the ad-cue rate only 33% -> 39% while
+# costing four whole categories: SPoRC's 2020 crawl is mostly long-tail shows, and no cheap filter
+# changes that. Since local labeling is free, the answer is volume, not pre-selection — and ad-free
+# episodes are useful negatives, not waste.
+MIN_EPISODE_COUNT = 10
 
 # Styles whose ad conventions differ most from our host-read business corpus. News/NPR-likes carry
 # underwriting reads; comedy and crime carry produced spots; kids/religion often carry none.
@@ -48,6 +53,20 @@ def build(n_shards=4, per_category=4, min_turns=40):
     OUT.mkdir(parents=True, exist_ok=True)
 
     cat_path = hf_hub_download(REPO, "metadata/category_index.parquet", repo_type="dataset")
+    # Establishment filter. A broad SPoRC sample is dominated by tiny unmonetised 2020 shows: a
+    # keyword probe of a naive sample found ad cues in only 13 of 40 episodes, with four whole
+    # categories at zero. Preferring English shows with a real back catalogue raises the ad rate
+    # without biasing *which kind* of ad we see — filtering by ad keywords would do that, and would
+    # teach the student only the keyword-detectable ads it already finds easy.
+    cat_meta = pd.read_parquet(hf_hub_download(REPO, "metadata/podcast_catalog.parquet",
+                                               repo_type="dataset"),
+                               columns=["podcast_id", "pod_title", "language", "episode_count"])
+    est = cat_meta[(cat_meta["language"].astype(str).str.lower().str.startswith("en"))
+                   & (cat_meta["episode_count"] >= MIN_EPISODE_COUNT)]
+    established = set(est["podcast_id"])
+    titles = est.set_index("podcast_id")["pod_title"].to_dict()
+    print(f"{len(established):,} established English podcasts (>= {MIN_EPISODE_COUNT} episodes)")
+
     cats = pd.read_parquet(cat_path)
     cats["category"] = cats["category"].str.lower()
     # A podcast carries several categories. Prefer whichever WANTED style it matches (so a show
@@ -72,17 +91,20 @@ def build(n_shards=4, per_category=4, min_turns=40):
     print(f"{turns['episode_id'].nunique():,} episodes with >= {min_turns} turns")
 
     chosen, counts = [], {}
-    ep_cat = turns.drop_duplicates("episode_id").set_index("episode_id")["category"]
-    for ep_id, cat in ep_cat.items():
+    ep_meta = turns.drop_duplicates("episode_id").set_index("episode_id")[["category", "podcast_id"]]
+    ep_meta = ep_meta[ep_meta["podcast_id"].isin(established)]
+    print(f"{len(ep_meta):,} episodes from established podcasts")
+    for ep_id, row in ep_meta.iterrows():
+        cat = row["category"]
         if not any(w in cat for w in WANTED):
             continue
         bucket = next(w for w in WANTED if w in cat)
         if counts.get(bucket, 0) >= per_category:
             continue
         counts[bucket] = counts.get(bucket, 0) + 1
-        chosen.append((ep_id, bucket))
+        chosen.append((ep_id, bucket, titles.get(row["podcast_id"], "?")))
 
-    for ep_id, bucket in chosen:
+    for ep_id, bucket, title in chosen:
         g = turns[turns["episode_id"] == ep_id].sort_values("start_time")
         segments = [{
             "id": f"{ep_id}-{i}",
@@ -96,6 +118,7 @@ def build(n_shards=4, per_category=4, min_turns=40):
         (OUT / f"{ep_id}.json").write_text(json.dumps({
             "episodeId": ep_id,
             "category": bucket,
+            "podcastTitle": title,
             "source": "sporc",
             "audioSeconds": segments[-1]["endMs"] / 1000,
             "transcript": {"episodeId": ep_id, "source": "sporc", "format": "turns",
