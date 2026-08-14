@@ -35,6 +35,34 @@ USE_POSITION = True
 SMOOTH_WINDOW = 5
 
 
+def normalize_segments(segments, target_words=7, max_ms=4000):
+    """Merge consecutive segments up to roughly gold's granularity.
+
+    Measured mismatch: gold (SpeechTranscriber) segments are median 2.9s / 10 words; SPoRC's
+    diarization *turns* are median 1.2s / 3 words — often bare interjections ("Yeah."). Training on
+    3-word fragments and inferring on 10-word sentences means every context and smoothing width
+    covers a different amount of time in each corpus, and 3 words carry almost no signal to embed.
+    That mismatch made 60x more data score WORSE than the tiny gold-trained model.
+
+    Labels are time ranges, so re-segmenting costs no re-labeling.
+    """
+    out, buf = [], None
+    for s in segments:
+        if buf is None:
+            buf = dict(s)
+            continue
+        long_enough = len(buf["text"].split()) >= target_words
+        would_overrun = s["endMs"] - buf["startMs"] > max_ms
+        if long_enough or would_overrun:
+            out.append(buf)
+            buf = dict(s)
+        else:
+            buf = {**buf, "text": f"{buf['text']} {s['text']}".strip(), "endMs": s["endMs"]}
+    if buf is not None:
+        out.append(buf)
+    return out
+
+
 def featurize(enc, segments):
     texts = [context_text(segments, i, CONTEXT_WIDTH) for i in range(len(segments))]
     X = enc.encode(texts, normalize_embeddings=True, batch_size=64, show_progress_bar=False)
@@ -54,7 +82,7 @@ def load_silver(tag, enc):
     for f in sorted(label_dir.glob("*.json")):
         lab = json.load(open(f))
         ep = json.load(open(HERE / "sporc" / "episodes" / f"{lab['episodeId']}.json"))
-        segments = ep["transcript"]["segments"]
+        segments = normalize_segments(ep["transcript"]["segments"])
         ranges = [(s, e) for s, e in lab["ranges"]]
         rows.append({"id": lab["episodeId"], "category": lab.get("category", "?"),
                      "segments": segments, "X": featurize(enc, segments),
@@ -89,7 +117,7 @@ def evaluate(clf, rows, threshold, truth_key):
 def main():
     tag = sys.argv[1]
     holdout = int(sys.argv[sys.argv.index("--holdout") + 1]) if "--holdout" in sys.argv else 8
-    threshold = float(sys.argv[sys.argv.index("--threshold") + 1]) if "--threshold" in sys.argv else 0.6
+    threshold = float(sys.argv[sys.argv.index("--threshold") + 1]) if "--threshold" in sys.argv else None
 
     enc = SentenceTransformer(ENCODER)
     silver = load_silver(tag, enc)
@@ -103,11 +131,27 @@ def main():
     held_ids = {r["id"] for r in held}
     train = [r for r in silver if r["id"] not in held_ids]
 
-    ad_frac = np.concatenate([r["y"] for r in train]).mean()
-    print(f"training on {len(train)} episodes ({ad_frac:.1%} of sentences labeled ad)")
+    # Carve a validation slice out of TRAIN to choose the threshold. Guessing it is a real error:
+    # at a 1.5% positive rate, class_weight="balanced" weights ads ~65:1, so the operating point
+    # moves a long way and a hand-picked threshold lands nowhere near optimal.
+    val = train[::8]
+    val_ids = {r["id"] for r in val}
+    fit_rows = [r for r in train if r["id"] not in val_ids]
+
+    ad_frac = np.concatenate([r["y"] for r in fit_rows]).mean()
+    print(f"training on {len(fit_rows)} episodes ({ad_frac:.1%} of sentences labeled ad), "
+          f"{len(val)} for threshold selection")
 
     clf = LogisticRegression(max_iter=2000, class_weight="balanced", C=1.0)
-    clf.fit(np.vstack([r["X"] for r in train]), np.concatenate([r["y"] for r in train]))
+    clf.fit(np.vstack([r["X"] for r in fit_rows]), np.concatenate([r["y"] for r in fit_rows]))
+
+    if threshold is None:
+        best, threshold = -1.0, 0.5
+        for thr in np.arange(0.30, 0.96, 0.05):
+            f2s = [x[4] for x in evaluate(clf, val, thr, "y")]
+            if np.median(f2s) > best:
+                best, threshold = np.median(f2s), thr
+        print(f"threshold {threshold:.2f} chosen on validation episodes (F2 {best:.3f})")
 
     def report(title, rows):
         print(f"\n=== {title} ===")

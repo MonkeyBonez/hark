@@ -137,6 +137,36 @@ Two things that only show up in the sweep:
 Threshold is swept 0.25-0.75 and chosen on training episodes only. Re-run the sweep on silver
 before trusting it: 7 episodes means gaps under ~0.05 are noise.
 
+## Round 1 result: the silver run FAILED, and why (2026-08-14)
+
+390 episodes labeled, student trained, and it scored **worse** than the 6-episode gold-trained
+model: gold F1 0.35 / F2 0.55 vs gold-trained F1 0.54 / F2 0.68. Recall was high (0.85-1.00),
+precision collapsed (0.10-0.34).
+
+Three fixes were tried and none moved it: tuning the threshold on a validation split (F2 .565 ->
+.547), re-segmenting SPoRC's 3-word diarization turns up to gold's 10-word granularity
+(F2 -> .488), and checking for pathological ranges (only 1% of ranges exceed 5 min).
+
+**The Sonnet audit found the actual cause: the teacher's labels on SPoRC are F1 0.588, not the
+0.945 it scored on gold.** Two of five audited teacher-positive episodes were F1 0.00 — e.g. a
+fiction reading whose `patreon.com` attribution was flagged as an ad — and one of three
+teacher-negative episodes had a real sponsor read the teacher missed entirely.
+
+**The methodological lesson, which is the important part:** we measured the teacher on gold
+(seven well-known, professionally-produced shows) and then applied it to SPoRC (long-tail 2020
+hobbyist podcasts) without re-validating. Teacher quality is **distribution-specific**. Never
+reuse a teacher score across corpora — audit on the corpus you are actually labeling, *before*
+spending hours labeling it. The audit costs ~12 episodes and would have caught this immediately.
+
+Candidate fixes, cheapest first:
+1. **Fix the prompt for this domain.** Failures look systematic — Patreon/attribution/self-promo
+   mentions flagged as sponsor. Small podcasts are full of these; gold's shows are not.
+2. **Filter the silver set** to episodes where two signals agree; fewer, cleaner labels.
+3. **Pay for a better teacher**: Haiku over 390 episodes is ~$15, Sonnet ~$50 — cheap, but
+   re-audit on SPoRC first rather than assuming their gold scores transfer either.
+4. **Change corpus**: RSS-fetched current episodes of established shows sit much closer to gold's
+   distribution (and dodge the 2020/licence problems).
+
 ## Traps already hit — do not repeat
 
 - **Keyword pre-filtering the corpus.** Biases training toward keyword-detectable ads, the ones we
