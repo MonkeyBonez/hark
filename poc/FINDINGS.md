@@ -110,18 +110,35 @@ with line indices, not timestamps — small models copy `12-18` reliably and `0:
 
 | model | size | median sponsor-F1 | sec/episode |
 |---|---|---|---|
-| Qwen3-1.7B-4bit (the bundled one) | 0.9GB | 0.175 | 10 |
-| Qwen3-4B-Instruct-2507-4bit | 2.1GB | 0.620 | 22 |
-| Qwen3-8B-4bit | 4.3GB | 0.815 | 38 |
-| Qwen3-8B-4bit **+ verify pass** | 4.3GB | **0.823** | 40 |
-| *(reference)* Haiku 4.5 | API | 0.957 | — |
 | *(reference)* Sonnet 5 | API | 1.000 | — |
+| *(reference)* Haiku 4.5 | API | 0.957 | — |
+| **Qwen3-14B-4bit + verify** | 7.8GB | **0.950** | 76 |
+| Qwen3-8B-4bit + verify | 4.3GB | 0.823 | 40 |
+| Qwen3-8B-4bit | 4.3GB | 0.815 | 38 |
+| Qwen3-4B-Instruct-2507-4bit | 2.1GB | 0.620 | 22 |
+| Qwen3-1.7B-4bit (the bundled one) | 0.9GB | 0.175 | 10 |
 
-Quality scales steeply with size and the verify pass buys precision as it always has (founders-402
-0.85→0.95 precision, lennys-1m 0.89→0.96). **On host-read episodes the local 8B is already at
-0.86/0.96/0.98/0.82** — over the 0.85 gate. Its two zeros are the same edge cases everything else
-trips on: an ad-free episode where one false positive survived verify, and radiolab (whose
-text-visible ceiling is 0.46 regardless of model).
+**A local 14B on this Mac labels at Haiku quality — 0.950 vs 0.957 — for free and offline.**
+Quality scales steeply with size (0.18 → 0.62 → 0.82 → 0.95 across 1.7B → 4B → 8B → 14B) and the
+verify pass buys precision at every size. The 14B also fixed the 8B's worst failure: on the ad-free
+episode it proposed zero candidates (F1 1.00) where the 8B false-positived.
+
+Per-episode, the 14B is 0.94–0.96 on all four host-read shows. Its remaining gaps are the corpus's
+two known-hard episodes: restishistory 0.72 (precision 0.57 — over-long boundaries on stacked
+produced spots) and radiolab 0.45.
+
+Note on radiolab and the "text-visible ceiling": a model that only labels lines containing text
+maxes out at F1 0.62 there (17s of 38s of gold ad time has any text at all). The 14B's 0.45 sits
+under that. **Haiku scored 0.74 — above the text-only ceiling** — because it inferred the silent
+break from the cue phrase before it ("Right after this short break") plus the gap. So the ceiling
+binds only models that label text literally; reasoning about gaps beats it, which is more evidence
+for feeding the gap in as an explicit feature.
+
+**Choosing a teacher.** At the scale we need (20–50 episodes) API cost is not a differentiator:
+~$1.94 for Haiku or ~$6.50 for Sonnet across 50 episodes (~39–44k tokens/episode, priced
+input-only — an upper bound). So the local 14B's value is not saving pennies; it's unlimited,
+offline, no-rate-limit labeling if we ever want to label thousands of episodes — at ~76s/episode
+and 7.8GB of disk, at essentially Haiku quality.
 
 ### Does the student lose anything learning from teacher labels? (`silver_student.py`)
 
