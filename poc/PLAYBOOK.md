@@ -183,6 +183,40 @@ Candidate fixes, cheapest first:
 4. **Change corpus**: RSS-fetched current episodes of established shows sit much closer to gold's
    distribution (and dodge the 2020/licence problems).
 
+## Prompt v2: NOT adopted (2026-08-14)
+
+Restructured per the researched evidence — gpt-oss-safeguard 4-section schema, 6 contrastive
+boundary cases taken from measured failures, task line repeated after the transcript (Post-Ins /
+lost-in-the-middle). Deliberately skipped role prompting and CoT, both of which fail to replicate
+for classification.
+
+Paired A/B against SILVER, episode-level bootstrap:
+
+| silver episodes | mean F2 old -> new | delta | 95% CI | P(better) |
+|---|---|---|---|---|
+| 8 | 0.693 -> 0.807 | +0.116 | [-0.070, +0.395] | 80% |
+| 16 | 0.501 -> 0.609 | +0.110 | [-0.087, +0.310] | 86% |
+
+Doubling the eval set moved the CI barely, because **the variance is per-episode, not sample-size
+driven**: 8 of 16 episodes are exactly unchanged while a few swing +-0.8 (one 0.11 -> 0.82, another
+0.81 -> 0.00). The prompt changes behaviour on a minority of episodes, dramatically.
+
+At sd(delta) ~0.4, detecting a +0.11 effect needs roughly **64 silver episodes**. Until then a
+prompt change is not measurable, and adopting on P=86% would be exactly the underpowered comparison
+the literature warns about. **Keep the current prompt** — it already yields 0.859 bronze labels
+under the corrected definition, so prompt tuning is a second-order optimisation.
+
+Known v2 regression to fix if resumed: stacked cold opens (a self-promo immediately followed by a
+sponsor read) — v2 returned NONE where the old prompt caught both blocks.
+
+## Corpus limitation found while building SILVER
+
+Several Sonnet labellers reported ads they could not mark: SPoRC merges some passages into single
+multi-minute ASR lines, so an ad embedded mid-line cannot be isolated without mislabelling minutes
+of real content. That caps achievable precision on those episodes **for every method**, and is an
+argument for rebuilding the corpus from RSS with our own sentence-level ASR rather than tuning
+against it.
+
 ## Traps already hit — do not repeat
 
 - **Keyword pre-filtering the corpus.** Biases training toward keyword-detectable ads, the ones we
