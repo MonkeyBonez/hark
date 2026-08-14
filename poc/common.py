@@ -83,6 +83,19 @@ def ad_f1(predicted, labeled):
     return precision, recall, f1
 
 
+def f_beta(precision, recall, beta=2.0):
+    """F2 by default: recall weighted twice as heavily as precision.
+
+    Ad skipping is OPTIONAL in the product (user decision 2026-08-14) — the app offers a skip and
+    the user takes it. A false positive is then a marker they ignore; a false negative means the
+    option never appears. So recall is the expensive side and F2, not F1, is the metric that
+    matches the product. F1 still governs silent auto-skip, where a false positive eats content.
+    """
+    b2 = beta * beta
+    denom = b2 * precision + recall
+    return (1 + b2) * precision * recall / denom if denom else 0.0
+
+
 def segments_to_ranges(flags, segments, merge_gap_ms=20_000, min_ms=8_000):
     """Predicted per-segment booleans -> ad ranges, with the D25 aggregation:
     merge blocks separated by <=20s, drop isolates shorter than 8s."""

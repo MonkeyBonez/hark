@@ -20,7 +20,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 
-from common import EPISODES, load_episode, load_ad_labels, ad_f1, segments_to_ranges
+from common import EPISODES, load_episode, load_ad_labels, ad_f1, f_beta, segments_to_ranges
 
 HERE = Path(__file__).resolve().parent
 ENCODER = "BAAI/bge-small-en-v1.5"
@@ -70,15 +70,18 @@ def load_gold(enc):
 
 
 def evaluate(clf, rows, threshold, truth_key):
-    f1s = []
+    """Returns (id, precision, recall, F1, F2) per episode. F2 is the headline metric — skipping is
+    optional, so missing an ad (option never offered) costs more than a spurious marker."""
+    out = []
     for r in rows:
         probs = clf.predict_proba(r["X"])[:, 1]
         smooth = np.convolve(probs, np.ones(3) / 3, mode="same")
         pred = segments_to_ranges(smooth >= threshold, r["segments"])
         truth = r[truth_key] if truth_key == "gold" else \
             segments_to_ranges(r["y"].astype(bool), r["segments"])
-        f1s.append((r["id"], ad_f1(pred, truth)[2]))
-    return f1s
+        p, rec, f1 = ad_f1(pred, truth)
+        out.append((r["id"], p, rec, f1, f_beta(p, rec, 2.0)))
+    return out
 
 
 def main():
@@ -104,21 +107,25 @@ def main():
     clf = LogisticRegression(max_iter=2000, class_weight="balanced", C=1.0)
     clf.fit(np.vstack([r["X"] for r in train]), np.concatenate([r["y"] for r in train]))
 
-    gold_f1 = evaluate(clf, gold, threshold, "gold")
-    print(f"\n=== GOLD (human labels, never trained on) ===")
-    for name, f1 in gold_f1:
-        print(f"  {name:<34} {f1:.2f}")
-    print(f"  median {np.median([f for _, f in gold_f1]):.3f}")
+    def report(title, rows):
+        print(f"\n=== {title} ===")
+        print(f"  {'episode':<34} {'P':>5} {'R':>5} {'F1':>5} {'F2':>5}")
+        for name, p, r, f1, f2 in rows:
+            print(f"  {name:<34} {p:5.2f} {r:5.2f} {f1:5.2f} {f2:5.2f}")
+        med_f1 = np.median([x[3] for x in rows])
+        med_f2 = np.median([x[4] for x in rows])
+        print(f"  median F1 {med_f1:.3f} | median F2 {med_f2:.3f}   <- F2 is the shipping metric")
+        return med_f1, med_f2
 
+    report("GOLD (human labels, never trained on)", evaluate(clf, gold, threshold, "gold"))
     if held:
-        held_f1 = evaluate(clf, held, threshold, "y")
-        print(f"\n=== HELD-OUT SILVER (teacher labels, unseen episodes) ===")
-        for name, f1 in held_f1:
-            print(f"  {name:<34} {f1:.2f}")
-        print(f"  median {np.median([f for _, f in held_f1]):.3f}")
+        report("HELD-OUT SILVER (teacher labels, unseen episodes)",
+               evaluate(clf, held, threshold, "y"))
 
-    print("\nreferences: gold-trained student 0.437, Sonnet-label-trained 0.534, "
-          "shipped LLM pipeline 0.515, auto-skip gate 0.85")
+    print("\nreferences: gold-trained student F1 0.437, Sonnet-label-trained 0.534, "
+          "shipped LLM pipeline 0.515")
+    print("targets: F2 >= ~0.7 ships as offered skips / Sponsor-break chapters; "
+          "F1 >= 0.85 additionally allows silent auto-skip")
 
 
 if __name__ == "__main__":

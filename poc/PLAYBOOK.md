@@ -52,13 +52,35 @@ Two numbers matter, and the gap between them matters more than either:
 **Stop when** two consecutive rounds improve gold median by < 0.02. That is diminishing returns;
 spend the effort on the app instead.
 
-## Gates
+## Gates — and which error to prefer
 
-- **>= 0.85** — clears auto-skip. Even here, keep iterating: margin is what makes auto-skip safe on
-  shows unlike anything in the corpus.
-- **0.6-0.85** — ships as visible "Sponsor break" chapters (PRD 8.11), which need no gate: a false
-  positive is a mislabeled chapter, not eaten content.
-- **< 0.6** — diagnose, do not scale.
+**Product decision (user, 2026-08-14): ad skipping is OPTIONAL — the app offers the skip, the user
+takes it. Given that, prefer showing the option slightly too often over not often enough.**
+
+This inverts the assumption the earlier numbers were tuned under. When a skip is *automatic*, a
+false positive silently eats content the user wanted and costs trust permanently — so precision was
+king and the bar was F1 >= 0.85. When the skip is *offered*, the costs flip:
+
+| error | cost when skipping is automatic | cost when skipping is offered |
+|---|---|---|
+| false positive | eats real content — severe, trust-destroying | a "Sponsor break" marker the user ignores — minor |
+| false negative | an unflagged ad, no worse than any other player | **the feature silently never appears** — this is now the expensive one |
+
+**Consequences for how we measure and tune:**
+
+- Report **precision, recall, F1 and F2** — F2 weights recall twice as heavily as precision and is
+  the metric that matches this product. Rank rounds by F2, not F1.
+- **Tune the threshold down** (0.6 was chosen under the precision-first assumption; try 0.35-0.5).
+  Still tune it on training episodes only, never on gold.
+- Keep the length floors: a >=30s block is worth offering, a 5s blip is noise regardless.
+- The **>= 0.85 F1 gate still governs silent auto-skip** if we ever offer that as a setting. It is
+  no longer the bar for shipping the feature at all.
+
+Gate summary:
+- **F2 >= ~0.7 with precision not collapsing** — ship as visible "Sponsor break" chapters / offered
+  skips. This is the shipping target now.
+- **F1 >= 0.85** — additionally safe to offer silent auto-skip as an opt-in setting.
+- **< 0.5 with low recall** — diagnose, do not scale.
 
 ## Reference numbers (do not re-measure)
 
