@@ -35,13 +35,24 @@ the host promoting their own show or newsletter (that is SELFPROMO, not an ad)."
 
 
 def chat(tokenizer, user):
-    """Family-agnostic: `enable_thinking` is a Qwen-ism that other templates reject."""
+    """Family-agnostic prompt building. Templates disagree on how to suppress reasoning:
+    `enable_thinking` is a Qwen-ism, `reasoning_effort` is gpt-oss/harmony. Try each in turn."""
     msgs = [{"role": "user", "content": user}]
+    # Pass both and let each template use what it knows: jinja silently ignores unknown variables,
+    # so a try/except chain would always stop at the first kwarg and never apply the second.
     try:
         return tokenizer.apply_chat_template(msgs, add_generation_prompt=True,
-                                             enable_thinking=False)
+                                             enable_thinking=False, reasoning_effort="low")
     except (TypeError, ValueError):
         return tokenizer.apply_chat_template(msgs, add_generation_prompt=True)
+
+
+def final_channel(reply):
+    """Reasoning models emit a scratchpad before the answer; keep only the answer. Harmony marks it
+    `<|channel|>final<|message|>`, Qwen-likes wrap the scratchpad in <think>...</think>."""
+    if "<|channel|>final<|message|>" in reply:
+        reply = reply.split("<|channel|>final<|message|>")[-1]
+    return re.sub(r"<think>.*?</think>", "", reply, flags=re.S)
 
 
 def build_prompt(tokenizer, lines):
@@ -54,7 +65,7 @@ def build_prompt(tokenizer, lines):
 
 
 def parse(reply, n_lines):
-    reply = re.sub(r"<think>.*?</think>", "", reply, flags=re.S)
+    reply = final_channel(reply)
     out = []
     for m in re.finditer(r"AD:\s*(\d+)\s*-\s*(\d+)", reply):
         a, b = int(m.group(1)), int(m.group(2))
@@ -73,6 +84,11 @@ def merge_ms(ranges, gap=10_000):
     return out
 
 
+# Reasoning models (gpt-oss) spend hundreds of tokens in their analysis channel before answering,
+# so a tight cap silently truncates them to zero output. Set generously; non-reasoning models stop
+# at their EOS long before this and pay nothing for the headroom.
+MAX_TOKENS = 1536
+
 VERIFY_INSTRUCTIONS = (
     "You classify podcast transcript excerpts. The excerpt is an AD only if it is a sponsor read "
     "or paid promotion (product pitch, promo code, sponsor URL, 'brought to you by'), an inserted "
@@ -86,9 +102,9 @@ def verify_block(model, tokenizer, sampler, text):
     Fail-open — an unparseable answer keeps the block, so verify can only raise precision."""
     user = (f"{VERIFY_INSTRUCTIONS}\n\nExcerpt:\n{text[:1500]}\n\n"
             "Answer with EXACTLY one line:\nVERDICT: ad\nor\nVERDICT: content")
-    reply = generate(model, tokenizer, prompt=chat(tokenizer, user), max_tokens=16,
+    reply = generate(model, tokenizer, prompt=chat(tokenizer, user), max_tokens=MAX_TOKENS,
                      sampler=sampler)
-    return "verdict: content" not in re.sub(r"<think>.*?</think>", "", reply, flags=re.S).lower()
+    return "verdict: content" not in final_channel(reply).lower()
 
 
 def block_text(segments, start_ms, end_ms):
@@ -104,7 +120,7 @@ def label_episode(model, tokenizer, segments, window, overlap, sampler):
         if not chunk:
             break
         prompt = build_prompt(tokenizer, [s["text"] for s in chunk])
-        reply = generate(model, tokenizer, prompt=prompt, max_tokens=128, sampler=sampler)
+        reply = generate(model, tokenizer, prompt=prompt, max_tokens=MAX_TOKENS, sampler=sampler)
         for a, b in parse(reply, len(chunk)):
             preds.append((chunk[a]["startMs"], chunk[b]["endMs"]))
     return merge_ms(preds)

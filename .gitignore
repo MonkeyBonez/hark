@@ -22,3 +22,7 @@ __pycache__/
 
 # Teacher-eval transcripts (regenerate: python3 poc/teacher_eval.py prep)
 poc/teacher_eval/transcripts/
+
+# SPoRC-derived data — the dataset is research/education licensed, and this repo is public,
+# so transcripts and derived labels stay local. Rebuild with: python3 poc/sporc_corpus.py build
+poc/sporc/
