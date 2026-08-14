@@ -7,6 +7,22 @@ read this file, run one command, and know what the result means.
 **Never train on gold.** The 7 human-labeled episodes in `HarkPipeline/docs/eval/labels/` are the
 scoreboard. Training on them turns a measurement into a memorisation test.
 
+## Dataset tiers (naming, user 2026-08-14)
+
+| tier | labeled by | size | cost | role |
+|---|---|---|---|---|
+| **GOLD** | humans (agent-labeled then audited by Snehal) | 7 episodes | slow | final scoreboard; **never trained on** |
+| **SILVER** | Sonnet | tens of episodes | ~$0.13/ep | powered eval set; reference for judging BRONZE and prompts |
+| **BRONZE** | the local model (gpt-oss-20b on this Mac) | hundreds | free | bulk training data for the student |
+
+Directories: gold = `HarkPipeline/docs/eval/labels/`, silver = `poc/sporc/audit/out/`,
+bronze = `poc/sporc/labels/<teacher-tag>/`.
+
+The point of the split: BRONZE is cheap enough to scale to thousands of episodes but noisy, so it
+trains the student. SILVER is accurate enough to *judge* — it tells us how much to trust BRONZE and
+whether a prompt change is real. GOLD is small and human-verified, so it is the only honest final
+number and stays untouched.
+
 ## The pipeline
 
 ```
