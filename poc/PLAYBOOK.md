@@ -77,6 +77,25 @@ Teachers, median sponsor-F1 vs human gold:
 Students: gold-label-trained 0.437, Sonnet-label-trained 0.534 (n=7, within noise — teacher labels
 cost the student nothing measurable). Shipped LLM pipeline 0.515. Keyword-only 0.00.
 
+## Performance: batch the labeling run (do this before round 2)
+
+Round 1 ran at **29s/episode** on an M4 Pro (14 CPU cores, 20 GPU cores, 16-core ANE, 24GB unified)
+and used maybe a third of the machine:
+
+- **No batching.** `mlx_lm.batch_generate` exists and we generated one window at a time. Each
+  episode is 7-20 *independent* windows, and single-sequence decoding is memory-bandwidth-bound —
+  most GPU cores idle waiting on weight reads. Batching 8-16 windows amortises each weight read
+  across many sequences: expect **3-5x** (29s -> ~6-10s per episode).
+- **ANE idle.** MLX is Metal-only. The Neural Engine is the right unit for the *embedder*, so
+  embeddings can run there concurrently rather than queueing behind the LLM.
+- **CPU idle** — the labeling process sat at 38% of one core.
+
+**Consistency rule, and it matters more than the speed:** do NOT switch batching on mid-corpus.
+Batched generation pads and masks differently and can produce subtly different output; a corpus
+half-labeled each way bakes in an inconsistency the student will happily learn and we would never
+see. Before using it for real: re-label ~5 already-labeled episodes batched and confirm the ranges
+match the unbatched output. Only then run a whole round with it.
+
 ## Traps already hit — do not repeat
 
 - **Keyword pre-filtering the corpus.** Biases training toward keyword-detectable ads, the ones we
