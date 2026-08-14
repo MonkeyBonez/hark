@@ -141,6 +141,28 @@ these gaps are **within noise** — which is exactly the point: **teacher labels
 nothing measurable.** The assumption holds, so the constraint on student quality is corpus size
 and style coverage, which is what silver labeling exists to fix.
 
+### Teacher agreement as free quality control (`teacher_agreement.py`)
+
+Teacher-vs-teacher overlap needs no gold labels, so it works on unlabeled episodes. Across the
+corpus it tracks accuracy almost exactly — **correlation 0.97** between how much Haiku and Sonnet
+agree and how accurate the worse of them is. Where they agree (5 episodes, 0.95–1.00) both are
+right; radiolab, the one real failure, is precisely where they diverge (agreement 0.00).
+
+Its limit is visible too: on restishistory they agree *perfectly with each other* (1.00) while both
+sit at 0.79 vs gold — agreement catches **divergent** errors, not **shared** ones (here, a
+systematic difference from the gold convention on stacked produced spots). So it's a triage signal,
+not a correctness proof. n=7, directional.
+
+**Usable recipe:** label with the cheap teacher, re-label with a second, escalate only the
+disagreements to a human or a stronger model.
+
+### Negative result: don't snap teacher ranges to segment edges
+
+Labeler boundaries looked jittery, so we tried expanding each predicted range to the edges of every
+segment it touches. It made things **worse** (Haiku 0.957→0.907, Sonnet 1.000→0.946): gold
+boundaries are tighter than segment edges, so snapping adds false-positive time on partially-touched
+segments. Teachers are already well-calibrated; leave their boundaries alone.
+
 ### Side finding: silent gaps as an ad signal (`gap_signal.py`)
 
 Gaps ≥5s between consecutive segments exist in only the 2 produced shows (host-read episodes have

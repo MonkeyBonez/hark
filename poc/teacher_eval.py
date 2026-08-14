@@ -71,13 +71,31 @@ def analyze():
               f"  {ceiling:.2f}" + ("   (no sponsor GT)" if not total else ""))
 
 
-def score():
+def snap(ranges, segments):
+    """Expand each range to the edges of the segments it touches.
+
+    Labelers eyeball boundaries off line timestamps; gold sits on segment edges. Snapping removes
+    that jitter without changing which lines were called ads — a free post-process on any teacher's
+    output (and on the app's own detections later)."""
+    out = []
+    for s, e in ranges:
+        touched = [seg for seg in segments if seg["startMs"] < e and seg["endMs"] > s]
+        if touched:
+            out.append((min(t["startMs"] for t in touched), max(t["endMs"] for t in touched)))
+        else:
+            out.append((s, e))
+    return out
+
+
+def score(do_snap=False):
     models = sorted(p.name for p in ODIR.iterdir() if p.is_dir())
-    print(f"{'episode':<34}" + "".join(f" {m:>10}" for m in models))
+    print(f"{'episode':<34}" + "".join(f" {m:>10}" for m in models)
+          + ("      (segment-snapped)" if do_snap else ""))
     medians = {}
     per_model = {m: [] for m in models}
     for ep in EPISODES:
         gold = load_ad_labels(ep, ("sponsor",))
+        _, segments = load_episode(ep)
         row = f"{ep:<34}"
         for m in models:
             path = ODIR / m / f"{ep}.json"
@@ -87,6 +105,8 @@ def score():
             ranges = json.load(open(path))["ranges"]
             pred = [(unclock(r["start"]), unclock(r["end"]))
                     for r in ranges if r.get("category") == "sponsor"]
+            if do_snap:
+                pred = snap(pred, segments)
             f1 = ad_f1(pred, gold)[2]
             per_model[m].append(f1)
             row += f" {f1:10.2f}"
@@ -100,4 +120,8 @@ def score():
 
 
 if __name__ == "__main__":
-    {"prep": prep, "score": score}[sys.argv[1]]()
+    cmd = sys.argv[1]
+    if cmd == "score":
+        score(do_snap="--snap" in sys.argv)
+    else:
+        {"prep": prep, "analyze": analyze}[cmd]()
