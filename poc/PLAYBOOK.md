@@ -209,6 +209,13 @@ under the corrected definition, so prompt tuning is a second-order optimisation.
 Known v2 regression to fix if resumed: stacked cold opens (a self-promo immediately followed by a
 sponsor read) — v2 returned NONE where the old prompt caught both blocks.
 
+**Flaw in that A/B, stated plainly:** the "old" arm read the stored BRONZE labels, which were
+generated with the *pre-definition-change* prompt. So the comparison moved two things at once — the
+ad definition AND the structural changes — and cannot attribute the delta to either. A clean rerun
+must re-label the old arm with the current definition and vary only structure. This is the standard
+trap of comparing against cached outputs from an older pipeline; cache the *prompt* alongside the
+labels so the arms are always identifiable.
+
 ## Corpus limitation found while building SILVER
 
 Several Sonnet labellers reported ads they could not mark: SPoRC merges some passages into single

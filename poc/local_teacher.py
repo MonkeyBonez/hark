@@ -91,9 +91,11 @@ TASK_LINE = ("List every run of lines that is promotional. Use EXACTLY this form
 
 
 def build_prompt(tokenizer, lines):
+    """v2 (BOUNDARY_EXAMPLES + task line repeated after the transcript) measured +0.11 mean F2 but
+    with a CI spanning zero at n=16, and regressed stacked cold opens to NONE. Not adopted; the
+    pieces are kept above so resuming the experiment costs nothing."""
     numbered = "\n".join(f"{i + 1}. {t}" for i, t in enumerate(lines))
-    user = (f"{INSTRUCTIONS}\n\n{BOUNDARY_EXAMPLES}\n\n{TASK_LINE}\n\n"
-            f"Numbered transcript lines:\n{numbered}\n\n{TASK_LINE}")
+    user = (f"{INSTRUCTIONS}\n\nNumbered transcript lines:\n{numbered}\n\n{TASK_LINE}")
     return chat(tokenizer, user)
 
 
