@@ -21,19 +21,24 @@ from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 
 from common import EPISODES, load_episode, load_ad_labels, ad_f1, f_beta, segments_to_ranges
+from tune_student import context_text, position_features
 
 HERE = Path(__file__).resolve().parent
 ENCODER = "BAAI/bge-small-en-v1.5"
 
+# Winning recipe from tune_student.py (leave-one-episode-out on gold, ranked by F2):
+# ctx=2, position features on, smoothing 5, linear head -> P .53 R .63 F1 .54 F2 .68
+# (baseline ctx=1/no-position/smooth-3/threshold-0.6 was F1 .44). Position features only pay off
+# at ctx=2 — at ctx=1 they actively hurt, so the two must be changed together.
+CONTEXT_WIDTH = 2
+USE_POSITION = True
+SMOOTH_WINDOW = 5
 
-def contextual(segments):
-    """Each sentence embedded with its neighbours — an ad read is recognisable from its run-in."""
-    out = []
-    for i, s in enumerate(segments):
-        prev = segments[i - 1]["text"] if i > 0 else ""
-        nxt = segments[i + 1]["text"] if i + 1 < len(segments) else ""
-        out.append(f"{prev} {s['text']} {nxt}".strip())
-    return out
+
+def featurize(enc, segments):
+    texts = [context_text(segments, i, CONTEXT_WIDTH) for i in range(len(segments))]
+    X = enc.encode(texts, normalize_embeddings=True, batch_size=64, show_progress_bar=False)
+    return np.hstack([X, position_features(segments)]) if USE_POSITION else X
 
 
 def labels_for(segments, ranges):
@@ -51,10 +56,9 @@ def load_silver(tag, enc):
         ep = json.load(open(HERE / "sporc" / "episodes" / f"{lab['episodeId']}.json"))
         segments = ep["transcript"]["segments"]
         ranges = [(s, e) for s, e in lab["ranges"]]
-        X = enc.encode(contextual(segments), normalize_embeddings=True, batch_size=64,
-                       show_progress_bar=False)
         rows.append({"id": lab["episodeId"], "category": lab.get("category", "?"),
-                     "segments": segments, "X": X, "y": labels_for(segments, ranges)})
+                     "segments": segments, "X": featurize(enc, segments),
+                     "y": labels_for(segments, ranges)})
     return rows
 
 
@@ -62,9 +66,7 @@ def load_gold(enc):
     rows = []
     for ep in EPISODES:
         _, segments = load_episode(ep)
-        X = enc.encode(contextual(segments), normalize_embeddings=True, batch_size=64,
-                       show_progress_bar=False)
-        rows.append({"id": ep, "segments": segments, "X": X,
+        rows.append({"id": ep, "segments": segments, "X": featurize(enc, segments),
                      "gold": load_ad_labels(ep, ("sponsor",))})
     return rows
 
@@ -75,7 +77,7 @@ def evaluate(clf, rows, threshold, truth_key):
     out = []
     for r in rows:
         probs = clf.predict_proba(r["X"])[:, 1]
-        smooth = np.convolve(probs, np.ones(3) / 3, mode="same")
+        smooth = np.convolve(probs, np.ones(SMOOTH_WINDOW) / SMOOTH_WINDOW, mode="same")
         pred = segments_to_ranges(smooth >= threshold, r["segments"])
         truth = r[truth_key] if truth_key == "gold" else \
             segments_to_ranges(r["y"].astype(bool), r["segments"])

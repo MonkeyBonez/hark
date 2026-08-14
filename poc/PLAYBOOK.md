@@ -118,6 +118,25 @@ half-labeled each way bakes in an inconsistency the student will happily learn a
 see. Before using it for real: re-label ~5 already-labeled episodes batched and confirm the ranges
 match the unbatched output. Only then run a whole round with it.
 
+## Student recipe (swept on gold, leave-one-episode-out, ranked by F2)
+
+`tune_student.py` swept 24 configurations. Winner, now the default in `train_student.py`:
+
+**ctx=2 sentences each side, position features ON, smoothing 5, linear head** ->
+P .53 / R .63 / F1 .54 / **F2 .68** (baseline ctx=1, no position, smooth 3, threshold 0.6: F1 .44).
+
+Two things that only show up in the sweep:
+
+- **Position features and context width interact.** Position features *hurt* at ctx=1
+  (F2 .58 -> .49) and *help substantially* at ctx=2 (F2 .52 -> .67), consistently across all three
+  smoothing widths. Never change one without re-testing the other.
+- **The MLP head buys precision but loses recall** (P .50-.65, R .44-.55) so it loses on F2 despite
+  often winning on F1. Keep it in mind if silent auto-skip ever becomes the goal — different metric,
+  possibly different head.
+
+Threshold is swept 0.25-0.75 and chosen on training episodes only. Re-run the sweep on silver
+before trusting it: 7 episodes means gaps under ~0.05 are noise.
+
 ## Traps already hit — do not repeat
 
 - **Keyword pre-filtering the corpus.** Biases training toward keyword-detectable ads, the ones we
