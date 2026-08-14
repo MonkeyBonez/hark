@@ -19,6 +19,22 @@ intelligence roadmap runs through approaches that never feed the model more than
       supervision — LLM-as-teacher auto-labels 20–50 more episodes (esp. produced/NPR styles),
       classifier-as-student retrains. Next experiment: scale training data that way.
 
+## On-device performance (see ON-DEVICE-PERF.md, researched 2026-08-13)
+
+- [ ] **URGENT — guard MLX/Metal against backgrounding.** On iOS 26.2 in-flight GPU work now
+      *crashes the process* (`accessRevoked`) rather than just failing. Snip enrichment runs MLX
+      right when a user is likely to pocket the phone. Gate on `applicationState == .active` and
+      abandon cleanly on `willResignActive`.
+- [ ] **Transcribe during playback.** We already ship `UIBackgroundModes: [audio]`, and
+      SpeechTranscriber is not Metal — so we can index while the user listens today, no new
+      entitlement, no Core ML port. Removes most of the "keep Hark open" friction.
+- [ ] Core ML embedder on the ANE: needs Apple's transformer rewrite (4D channels-first,
+      Linear->Conv2d, per-head Q/K/V, einsum), `EnumeratedShapes` **not** `RangeDim` (RangeDim
+      measured 0% ANE), fixed batch 16-32 / seq 64. Verify placement with MLComputePlan — do not
+      assume it.
+- [ ] W8A8 quantize the embedder (~1.6-1.8x latency per Apple's A16 numbers; <1% MTEB cost).
+- [ ] Logistic head via one `cblas_sgemv` (~10-30us for 400 sentences).
+
 ## Backlog (agreed earlier)
 
 - [ ] On-device dogfood pass: chunk-boundary seams, enrichment memory alongside ASR, accessory
