@@ -34,14 +34,23 @@ NOT an ad: the hosts discussing companies, products, or investments as the topic
 the host promoting their own show or newsletter (that is SELFPROMO, not an ad)."""
 
 
+def chat(tokenizer, user):
+    """Family-agnostic: `enable_thinking` is a Qwen-ism that other templates reject."""
+    msgs = [{"role": "user", "content": user}]
+    try:
+        return tokenizer.apply_chat_template(msgs, add_generation_prompt=True,
+                                             enable_thinking=False)
+    except (TypeError, ValueError):
+        return tokenizer.apply_chat_template(msgs, add_generation_prompt=True)
+
+
 def build_prompt(tokenizer, lines):
     numbered = "\n".join(f"{i + 1}. {t}" for i, t in enumerate(lines))
     user = (f"{INSTRUCTIONS}\n\nNumbered transcript lines:\n{numbered}\n\n"
             f"List every run of lines that is an advertisement. Use EXACTLY this format, one per "
             f"line:\nAD: <firstLine>-<lastLine>\n\nIf there are no advertisements in these lines, "
             f"answer exactly:\nNONE")
-    return tokenizer.apply_chat_template([{"role": "user", "content": user}],
-                                         add_generation_prompt=True, enable_thinking=False)
+    return chat(tokenizer, user)
 
 
 def parse(reply, n_lines):
@@ -77,9 +86,8 @@ def verify_block(model, tokenizer, sampler, text):
     Fail-open — an unparseable answer keeps the block, so verify can only raise precision."""
     user = (f"{VERIFY_INSTRUCTIONS}\n\nExcerpt:\n{text[:1500]}\n\n"
             "Answer with EXACTLY one line:\nVERDICT: ad\nor\nVERDICT: content")
-    prompt = tokenizer.apply_chat_template([{"role": "user", "content": user}],
-                                           add_generation_prompt=True, enable_thinking=False)
-    reply = generate(model, tokenizer, prompt=prompt, max_tokens=16, sampler=sampler)
+    reply = generate(model, tokenizer, prompt=chat(tokenizer, user), max_tokens=16,
+                     sampler=sampler)
     return "verdict: content" not in re.sub(r"<think>.*?</think>", "", reply, flags=re.S).lower()
 
 
