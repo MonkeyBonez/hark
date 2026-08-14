@@ -22,7 +22,7 @@ from pathlib import Path
 
 import numpy as np
 
-from common import ad_f1
+from common import AD_CATEGORIES, ad_f1
 
 HERE = Path(__file__).resolve().parent
 EPISODES_DIR = HERE / "sporc" / "episodes"
@@ -84,7 +84,7 @@ def score(tag):
             if not f.exists():
                 continue
             ref = [(unclock(r["start"]), unclock(r["end"]))
-                   for r in json.load(open(f))["ranges"] if r.get("category") == "sponsor"]
+                   for r in json.load(open(f))["ranges"] if r.get("category") in AD_CATEGORIES]
             got = [(s, e) for s, e in silver[ep_id]["ranges"]]
             p, r, f1 = ad_f1(got, ref)
             rows.append((group, ep_id, silver[ep_id].get("category", "?"), p, r, f1))

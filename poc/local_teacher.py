@@ -24,14 +24,29 @@ import numpy as np
 from mlx_lm import load, generate
 from mlx_lm.sample_utils import make_sampler
 
-from common import EPISODES, load_episode, load_ad_labels, ad_f1
+from common import AD_CATEGORIES, EPISODES, load_episode, load_ad_labels, ad_f1
 
 INSTRUCTIONS = """You find advertisements in podcast transcripts.
 
-An AD is: a sponsor read (host reading a paid message for a product/service), an inserted ad \
-spot, a promo code or sponsor URL, or an underwriting credit ("support for this show comes from").
-NOT an ad: the hosts discussing companies, products, or investments as the topic of conversation; \
-the host promoting their own show or newsletter (that is SELFPROMO, not an ad)."""
+The test is: WOULD A LISTENER WANT TO SKIP THIS? Mark any promotional break, whoever benefits.
+
+PROMOTIONAL (mark it):
+- sponsor reads for an outside company ("this episode is brought to you by...")
+- inserted ad spots, promo codes, discount URLs
+- underwriting credits ("support for this show comes from the X Foundation")
+- the show's OWN Patreon, donations, memberships or "support the podcast" appeals
+- the show's OWN website, newsletter, merch, live events, or plugs for its other episodes
+- another show being promoted (network cross-promotion)
+- "subscribe, rate and review", "follow us", "join our Discord"
+
+CONTENT (do not mark):
+- the hosts discussing companies, products or investments as the topic of conversation
+- a guest describing their own company as part of the interview
+- crediting a source or author of material being read, as attribution rather than a pitch
+- ordinary conversation, narration, interviews
+
+When unsure, mark it. A wrongly-marked section is a skip the listener declines; a missed one means
+they are never offered the skip at all."""
 
 
 def chat(tokenizer, user):
@@ -55,12 +70,30 @@ def final_channel(reply):
     return re.sub(r"<think>.*?</think>", "", reply, flags=re.S)
 
 
+# Boundary cases, taken from measured failures rather than invented. Contrastive near-misses beat
+# plain few-shot for classification, and OpenAI's gpt-oss-safeguard guide prescribes 4-6 of them.
+# Balanced AD/NOT so the demos carry no majority-label bias.
+BOUNDARY_EXAMPLES = """Boundary cases:
+- "If you'd like to donate to the author, please visit patreon.com/wildbow" said while reading
+  someone else's story -> NOT promotional. It credits the author of the material being read.
+- "If you want to support the podcast go to patreon.com/thisshow" -> PROMOTIONAL. The show is
+  asking listeners for money.
+- "Ramp grew from nothing to a huge company because Peterffy understood spreads" -> NOT
+  promotional. The company is the subject of the story.
+- "This episode is brought to you by Ramp. Go to ramp.com/founders" -> PROMOTIONAL.
+- A guest answering "what does your company do?" in an interview -> NOT promotional.
+- "Support for this show comes from the Sloan Foundation" -> PROMOTIONAL (underwriting)."""
+
+# Repeating the task after the transcript measurably helps on long inputs (Post-Ins, ACL Findings
+# 2024) — attention is U-shaped, so an instruction sitting only above 60 lines is the weak spot.
+TASK_LINE = ("List every run of lines that is promotional. Use EXACTLY this format, one per line:\n"
+             "AD: <firstLine>-<lastLine>\n\nIf no lines are promotional, answer exactly:\nNONE")
+
+
 def build_prompt(tokenizer, lines):
     numbered = "\n".join(f"{i + 1}. {t}" for i, t in enumerate(lines))
-    user = (f"{INSTRUCTIONS}\n\nNumbered transcript lines:\n{numbered}\n\n"
-            f"List every run of lines that is an advertisement. Use EXACTLY this format, one per "
-            f"line:\nAD: <firstLine>-<lastLine>\n\nIf there are no advertisements in these lines, "
-            f"answer exactly:\nNONE")
+    user = (f"{INSTRUCTIONS}\n\n{BOUNDARY_EXAMPLES}\n\n{TASK_LINE}\n\n"
+            f"Numbered transcript lines:\n{numbered}\n\n{TASK_LINE}")
     return chat(tokenizer, user)
 
 
@@ -90,11 +123,16 @@ def merge_ms(ranges, gap=10_000):
 MAX_TOKENS = 1536
 
 VERIFY_INSTRUCTIONS = (
-    "You classify podcast transcript excerpts. The excerpt is an AD only if it is a sponsor read "
-    "or paid promotion (product pitch, promo code, sponsor URL, 'brought to you by'), an inserted "
-    "ad spot, or an underwriting credit. The hosts discussing companies, products, or investments "
-    "as the topic of conversation is CONTENT. The host promoting their own show or newsletter is "
-    "CONTENT.")
+    "You classify podcast transcript excerpts. The test is: would a listener want to skip this?\n"
+    "AD (any promotional break, whoever benefits): sponsor reads, inserted ad spots, promo codes, "
+    "underwriting credits, the show's own Patreon/donations/memberships/website/newsletter/merch/"
+    "events, plugs for its other episodes, cross-promotion of another show, 'subscribe, rate and "
+    "review'.\n"
+    "CONTENT: hosts discussing companies or products as the topic of conversation; a guest "
+    "describing their own company in an interview; attribution or credits for material being read; "
+    "ordinary conversation, narration and interviews.\n"
+    "When unsure, answer ad — a wrongly-marked section is a skip the listener declines, a missed "
+    "one is never offered.")
 
 
 def verify_block(model, tokenizer, sampler, text):
@@ -156,7 +194,7 @@ def main():
                     if verify_block(model, tokenizer, sampler, block_text(segments, s, e))]
             kept_note = f"   {len(pred)}/{n_before}"
         secs = time.time() - t0
-        p, r, f1 = ad_f1(pred, load_ad_labels(ep, ("sponsor",)))
+        p, r, f1 = ad_f1(pred, load_ad_labels(ep, AD_CATEGORIES))
         f1s.append(f1)
         print(f"{ep:<34} {p:5.2f} {r:5.2f} {f1:5.2f} {secs:6.0f}{kept_note}")
     print(f"\nmedian sponsor-F1: {np.median(f1s):.3f}")

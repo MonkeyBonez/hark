@@ -13,7 +13,7 @@ Usage: python3 gap_signal.py
 
 import re
 
-from common import EPISODES, load_episode, load_ad_labels
+from common import AD_CATEGORIES, EPISODES, load_episode, load_ad_labels
 
 MIN_GAP_MS = 5_000
 CUE = re.compile(r"\b(right back|short break|after (the|this) break|we'?ll be back|stick around|"
@@ -25,7 +25,7 @@ def main():
     tot_gaps = tot_in_ad = tot_cue = tot_cue_in_ad = 0
     for ep in EPISODES:
         _, segs = load_episode(ep)
-        gold = load_ad_labels(ep, ("sponsor",))
+        gold = load_ad_labels(ep, AD_CATEGORIES)
         gaps = []
         for prev, nxt in zip(segs, segs[1:]):
             gap = nxt["startMs"] - prev["endMs"]

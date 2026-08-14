@@ -23,11 +23,12 @@ from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 
-from common import (EPISODES, load_episode, load_ad_labels, ad_f1, f_beta, segments_to_ranges)
+from common import (AD_CATEGORIES, EPISODES, load_episode, load_ad_labels, ad_f1, f_beta,
+                    segments_to_ranges)
 
 ENCODER = "BAAI/bge-small-en-v1.5"
 TRAIN_CATEGORIES = ("sponsor", "selfpromo", "crosspromo")
-EVAL_CATEGORIES = ("sponsor",)
+EVAL_CATEGORIES = AD_CATEGORIES
 
 
 def context_text(segments, i, width):

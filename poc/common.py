@@ -13,6 +13,17 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# What counts as skippable (product decision, user, 2026-08-14).
+#
+# The question is NOT "was this paid?" but "is this something the listener wants to skip?" — so a
+# 90-second membership pitch counts even though nobody paid for it, and a network cross-promo
+# counts even though the money stays in-house. Over-firing is explicitly acceptable: skipping is
+# offered, not automatic, and the UI just proposes skipping the section without naming a category.
+#
+# The 30s actioning floor still means short "rate and review" blips never interrupt anything, which
+# was the original concern behind treating self-promo as content (D33).
+AD_CATEGORIES = ("sponsor", "selfpromo", "crosspromo")
 ARTIFACTS = ROOT / "HarkPipeline/.eval-corpus/artifacts"
 RECALL = ROOT / "HarkPipeline/.eval-corpus/recall"
 LABELS = ROOT / "HarkPipeline/docs/eval/labels"

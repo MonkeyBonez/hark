@@ -16,10 +16,10 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 
-from common import EPISODES, load_episode, load_ad_labels, ad_f1, segments_to_ranges
+from common import AD_CATEGORIES, EPISODES, load_episode, load_ad_labels, ad_f1, segments_to_ranges
 
 TRAIN_CATEGORIES = ("sponsor", "selfpromo", "crosspromo")  # learn "ad-ish" broadly
-EVAL_CATEGORIES = ("sponsor",)                             # score against sponsor GT (as D38 did)
+EVAL_CATEGORIES = AD_CATEGORIES   # all promotional breaks now count (user decision 2026-08-14)
 
 
 def overlaps(seg, ranges):

@@ -20,7 +20,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 
-from common import EPISODES, load_episode, load_ad_labels, ad_f1, f_beta, segments_to_ranges
+from common import AD_CATEGORIES, EPISODES, load_episode, load_ad_labels, ad_f1, f_beta, segments_to_ranges
 from tune_student import context_text, position_features
 
 HERE = Path(__file__).resolve().parent
@@ -95,7 +95,7 @@ def load_gold(enc):
     for ep in EPISODES:
         _, segments = load_episode(ep)
         rows.append({"id": ep, "segments": segments, "X": featurize(enc, segments),
-                     "gold": load_ad_labels(ep, ("sponsor",))})
+                     "gold": load_ad_labels(ep, AD_CATEGORIES)})
     return rows
 
 

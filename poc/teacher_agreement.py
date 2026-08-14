@@ -11,7 +11,7 @@ import json
 
 import numpy as np
 
-from common import EPISODES, load_ad_labels, ad_f1
+from common import AD_CATEGORIES, EPISODES, load_ad_labels, ad_f1
 from teacher_eval import ODIR, unclock
 
 
@@ -20,7 +20,7 @@ def ranges_of(model, ep):
     if not path.exists():
         return None
     return [(unclock(r["start"]), unclock(r["end"]))
-            for r in json.load(open(path))["ranges"] if r.get("category") == "sponsor"]
+            for r in json.load(open(path))["ranges"] if r.get("category") in AD_CATEGORIES]
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
         h, s = ranges_of("haiku", ep), ranges_of("sonnet", ep)
         if h is None or s is None:
             continue
-        gold = load_ad_labels(ep, ("sponsor",))
+        gold = load_ad_labels(ep, AD_CATEGORIES)
         a = ad_f1(h, s)[2]                      # teacher-vs-teacher, no gold needed
         fh, fs = ad_f1(h, gold)[2], ad_f1(s, gold)[2]
         agree.append(a)
