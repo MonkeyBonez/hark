@@ -19,21 +19,17 @@ intelligence roadmap runs through approaches that never feed the model more than
       supervision — LLM-as-teacher auto-labels 20–50 more episodes (esp. produced/NPR styles),
       classifier-as-student retrains. Next experiment: scale training data that way.
 
-## On-device performance (see ON-DEVICE-PERF.md, researched 2026-08-13)
+## On-device performance — BACKLOG (see ON-DEVICE-PERF.md, researched 2026-08-13)
 
-- [ ] **URGENT — guard MLX/Metal against backgrounding.** On iOS 26.2 in-flight GPU work now
-      *crashes the process* (`accessRevoked`) rather than just failing. Snip enrichment runs MLX
-      right when a user is likely to pocket the phone. Gate on `applicationState == .active` and
-      abandon cleanly on `willResignActive`.
-- [ ] **Transcribe during playback.** We already ship `UIBackgroundModes: [audio]`, and
-      SpeechTranscriber is not Metal — so we can index while the user listens today, no new
-      entitlement, no Core ML port. Removes most of the "keep Hark open" friction.
-- [ ] Core ML embedder on the ANE: needs Apple's transformer rewrite (4D channels-first,
-      Linear->Conv2d, per-head Q/K/V, einsum), `EnumeratedShapes` **not** `RangeDim` (RangeDim
-      measured 0% ANE), fixed batch 16-32 / seq 64. Verify placement with MLComputePlan — do not
-      assume it.
-- [ ] W8A8 quantize the embedder (~1.6-1.8x latency per Apple's A16 numbers; <1% MTEB cost).
-- [ ] Logistic head via one `cblas_sgemv` (~10-30us for 400 sentences).
+Deferred by decision 2026-08-14: get the model good first. None of this blocks model quality.
+
+- [ ] Guard MLX/Metal against backgrounding (iOS 26.2 crashes the process on in-flight GPU work).
+- [ ] Transcribe during playback — `UIBackgroundModes: [audio]` already shipped, ASR isn't Metal.
+- [ ] Core ML embedder: start with a *plain* conversion + `.cpuAndNeuralEngine` (background-safe
+      without any rewrite), measure, and only do Apple's full ANE transformer rewrite if measurement
+      demands it. We are not latency-bound — embedding runs once per episode inside a transcription
+      that already takes minutes.
+- [ ] W8A8 quantize the embedder; `cblas_sgemv` for the head.
 
 ## Backlog (agreed earlier)
 
