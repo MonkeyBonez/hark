@@ -83,8 +83,9 @@ struct SnipsView: View {
 
     private func row(_ card: Card, showsEpisode: Bool) -> some View {
         SnipCardRow(card: card, showsEpisode: showsEpisode) {
-            player.play(card.episode, resume: false)
-            player.seek(to: Double(card.snip.startMs) / 1000)
+            if player.play(card.episode, resume: false) {
+                player.seek(to: Double(card.snip.startMs) / 1000)
+            }
         }
         .contentShape(Rectangle())
         .onTapGesture { selected = card }
@@ -156,8 +157,9 @@ struct EpisodeSnipsView: View {
                 } else {
                     ForEach(cards) { card in
                         SnipCardRow(card: card, showsEpisode: false) {
-                            player.play(card.episode, resume: false)
-                            player.seek(to: Double(card.snip.startMs) / 1000)
+                            if player.play(card.episode, resume: false) {
+                                player.seek(to: Double(card.snip.startMs) / 1000)
+                            }
                         }
                         .contentShape(Rectangle())
                         .onTapGesture { selected = card }

@@ -78,8 +78,9 @@ struct SnipDetailView: View {
 
                 Section {
                     Button {
-                        player.play(episode, resume: false)
-                        player.seek(to: Double(startMs) / 1000)
+                        if player.play(episode, resume: false) {
+                            player.seek(to: Double(startMs) / 1000)
+                        }
                     } label: {
                         Label("Play from start", systemImage: "play.circle")
                     }

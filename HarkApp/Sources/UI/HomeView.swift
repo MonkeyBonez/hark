@@ -18,8 +18,7 @@ struct HomeView: View {
                 if let hero = resumable.first {
                     Section("Jump back in") {
                         ResumeCard(episode: hero.0, podcast: hero.1) {
-                            player.play(hero.0)
-                            showPlayer = true
+                            if player.play(hero.0) { showPlayer = true }
                         }
                         ForEach(resumable.dropFirst(), id: \.0.id) { pair in
                             EpisodeRow(episode: pair.0, podcast: pair.1, showResumeBar: true)

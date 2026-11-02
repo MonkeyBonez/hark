@@ -35,6 +35,16 @@ struct RootView: View {
     private func debugSeedIfRequested() async {
         #if DEBUG
         let env = ProcessInfo.processInfo.environment
+        #if targetEnvironment(simulator)
+        if env["HARK_SEARCH_FIXTURE"] == "1" {
+            do {
+                try SearchDebugFixture.seed()
+            } catch {
+                player.playbackError = "Couldn't prepare the synthetic search fixture."
+            }
+            return
+        }
+        #endif
         guard let feed = env["HARK_SEED_FEED"] else { return }
         await subscriptions.subscribe(feedURL: feed)
         if env["HARK_AUTOPLAY"] == "1" {
@@ -50,6 +60,7 @@ struct RootView: View {
         TabView {
             Tab("Home", systemImage: "house") { HomeView(showPlayer: $showPlayer) }
             Tab("Discover", systemImage: "magnifyingglass") { DiscoverView() }
+            Tab("Find", systemImage: "text.magnifyingglass") { FindView(showPlayer: $showPlayer) }
             Tab("Snips", systemImage: "scissors") { SnipsView() }
             Tab("You", systemImage: "person") { YouView() }
         }
@@ -72,5 +83,13 @@ struct RootView: View {
             }
         }
         .animation(.snappy, value: player.snipToastText)
+        .alert("Audio unavailable", isPresented: Binding(
+            get: { !showPlayer && player.playbackError != nil },
+            set: { if !$0 { player.playbackError = nil } }
+        )) {
+            Button("OK") { player.playbackError = nil }
+        } message: {
+            Text(player.playbackError ?? "")
+        }
     }
 }

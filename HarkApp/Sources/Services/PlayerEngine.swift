@@ -14,17 +14,22 @@ final class PlayerEngine: ObservableObject {
 
     @Published private(set) var currentEpisode: Episode?
     @Published private(set) var currentPodcast: Podcast?
+    @Published private(set) var currentSearchSnip: Snip?
     @Published private(set) var isPlaying = false
     @Published private(set) var currentTime: Double = 0
     @Published private(set) var duration: Double = 0
     @Published var rate: Float = 1.0 { didSet { applyRate() } }
     @Published var snipToastText: String?
+    @Published var playbackError: String?
 
     private let player = AVPlayer()
     private let db = AppDatabase.shared
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
+    private var itemStatusObservation: NSKeyValueObservation?
+    private var playbackFailureTask: Task<Void, Never>?
     private var lastPersist = Date.distantPast
+    private var playbackRequestID = 0
 
     /// The window a lock-screen snip captures: "what I just heard", boundary re-snap comes in P3.
     private let snipTrailingSeconds: Double = 30
@@ -37,16 +42,109 @@ final class PlayerEngine: ObservableObject {
 
     // MARK: Transport
 
-    func play(_ episode: Episode, resume: Bool = true) {
-        persistPosition(force: true)   // save the outgoing episode's position first
+    @discardableResult
+    func play(_ episode: Episode, resume: Bool = true) -> Bool {
+        playbackRequestID &+= 1
+        guard let url = PlaybackSource.resolve(localURL: DownloadManager.localURL(for: episode),
+                                               remoteURL: episode.audioURL) else {
+            playbackError = "No playable audio is available for this episode."
+            return false
+        }
+        playbackError = nil
+        prepare(episode, item: AVPlayerItem(url: url))
+        if resume, episode.playbackPositionSeconds > 5 {
+            player.seek(to: CMTime(seconds: episode.playbackPositionSeconds, preferredTimescale: 600))
+        }
+        startPlayback(episode)
+        return true
+    }
 
-        let url = DownloadManager.localURL(for: episode) ?? URL(string: episode.audioURL)
-        guard let url else { return }
+    /// Search waits for the real asset and an exact seek before presenting the player.
+    func playFromSearch(_ destination: MomentDestination) async -> Bool {
+        playbackRequestID &+= 1
+        let requestID = playbackRequestID
+        let episode = destination.episode
+        playbackError = nil
+        guard let url = PlaybackSource.resolve(localURL: DownloadManager.localURL(for: episode),
+                                               remoteURL: episode.audioURL) else {
+            playbackError = "No playable audio is available for this episode."
+            return false
+        }
+        let asset = AVURLAsset(url: url)
+        do {
+            let playable = try await asset.load(.isPlayable)
+            guard !Task.isCancelled, playbackRequestID == requestID else { return false }
+            guard playable else {
+                playbackError = "This episode's audio cannot be played."
+                return false
+            }
+        } catch {
+            guard !Task.isCancelled, playbackRequestID == requestID else { return false }
+            playbackError = "Couldn't open this episode's audio. Check its download or connection."
+            return false
+        }
 
+        let target = Double(destination.startMs) / 1000
+        let assetDuration = try? await asset.load(.duration)
+        guard !Task.isCancelled, playbackRequestID == requestID else { return false }
+        if let assetDuration, assetDuration.isNumeric, assetDuration.seconds.isFinite,
+           target >= assetDuration.seconds {
+            playbackError = "The saved moment is beyond the available audio."
+            return false
+        }
+
+        let item = AVPlayerItem(asset: asset)
+        prepare(episode, item: item)
+        if let assetDuration, assetDuration.isNumeric, assetDuration.seconds.isFinite {
+            duration = assetDuration.seconds
+        }
+        let sought = await player.seek(to: CMTime(seconds: target, preferredTimescale: 1000),
+                                       toleranceBefore: .zero, toleranceAfter: .zero)
+        guard playbackRequestID == requestID, player.currentItem === item else { return false }
+        let actual = player.currentTime().seconds
+        guard !Task.isCancelled, sought, actual.isFinite, abs(actual - target) < 0.25 else {
+            player.pause()
+            isPlaying = false
+            playbackError = "Couldn't seek to this saved moment in the available audio."
+            return false
+        }
+        currentTime = actual
+        currentSearchSnip = destination.snip
+        startPlayback(episode)
+        return true
+    }
+
+    private func prepare(_ episode: Episode, item: AVPlayerItem) {
+        persistPosition(force: true)
+        player.pause()
+        isPlaying = false
         currentEpisode = episode
         currentPodcast = try? db.dbQueue.read { try Podcast.fetchOne($0, key: episode.podcastFeedURL) }
-        let item = AVPlayerItem(url: url)
+        currentSearchSnip = nil
+        currentTime = 0
+        duration = episode.durationSeconds ?? 0
         player.replaceCurrentItem(with: item)
+        itemStatusObservation = item.observe(\.status, options: [.new]) { [weak self] item, _ in
+            guard item.status == .failed else { return }
+            Task { @MainActor [weak self] in
+                guard let self, self.player.currentItem === item else { return }
+                self.isPlaying = false
+                self.playbackError = "This episode's audio couldn't be played. Check its download or connection."
+                self.updateNowPlaying()
+            }
+        }
+        playbackFailureTask?.cancel()
+        playbackFailureTask = Task { [weak self, weak item] in
+            guard let item else { return }
+            for await _ in NotificationCenter.default.notifications(
+                named: AVPlayerItem.failedToPlayToEndTimeNotification, object: item
+            ) {
+                guard let self, self.player.currentItem === item else { return }
+                self.isPlaying = false
+                self.playbackError = "This episode's audio stopped unexpectedly. Check its download or connection."
+                self.updateNowPlaying()
+            }
+        }
 
         if endObserver == nil {
             endObserver = NotificationCenter.default.addObserver(
@@ -55,13 +153,11 @@ final class PlayerEngine: ObservableObject {
                 Task { @MainActor in self?.episodeFinished() }
             }
         }
+    }
 
-        if resume, episode.playbackPositionSeconds > 5 {
-            player.seek(to: CMTime(seconds: episode.playbackPositionSeconds, preferredTimescale: 600))
-        }
+    private func startPlayback(_ episode: Episode) {
         player.playImmediately(atRate: rate)
         isPlaying = true
-        duration = episode.durationSeconds ?? 0
         markPlayed(episode)
         updateNowPlaying()
 
@@ -210,9 +306,10 @@ final class PlayerEngine: ObservableObject {
             forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main
         ) { [weak self] time in
             Task { @MainActor in
-                guard let self else { return }
+                guard let self, time.isNumeric, time.seconds.isFinite, time.seconds >= 0 else { return }
                 self.currentTime = time.seconds
-                if let item = self.player.currentItem, item.duration.isNumeric {
+                if let item = self.player.currentItem, item.duration.isNumeric,
+                   item.duration.seconds.isFinite {
                     self.duration = item.duration.seconds
                 }
                 self.persistPosition()

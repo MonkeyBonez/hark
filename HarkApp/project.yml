@@ -14,6 +14,8 @@ targets:
   Hark:
     type: application
     platform: iOS
+    scheme:
+      testTargets: [HarkTests, HarkUITests]
     sources:
       - Sources
       # Bundled LLM weights (D38): Qwen3-1.7B-4bit shipped inside the app so first launch needs
@@ -50,6 +52,30 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 0.1.0
         GENERATE_INFOPLIST_FILE: NO
+
+  HarkTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: Hark
+      - package: GRDB
+        product: GRDB
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+
+  HarkUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: Hark
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
 
   # Device twin — the on-device budget reporter (docs/device-twin-spec.md). Never shipped.
   # One screen: Run → per-stage RTF / peak RSS / thermal, share JSON. Needs a physical iPhone

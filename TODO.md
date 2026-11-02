@@ -37,7 +37,7 @@ Deferred by decision 2026-08-14: get the model good first. None of this blocks m
       mini player, speed scrub feel
 - [ ] Background transcription via BGContinuedProcessingTask (ASR is CPU/ANE — background-safe,
       unlike MLX)
-- [ ] Find-a-moment search UI (FTS5 now; upgrades to hybrid embedding search above)
+- [x] Find-a-moment search UI (local FTS5; hybrid embedding search remains a later upgrade)
 - [ ] Shareable snip cards (PRD §7.4)
 - [ ] Cooldown eviction: delete transcripts for episodes not listened to in N days
 - [ ] Revive summaries chunk-scoped (per-chapter windows, snip-enrichment-sized prompts) — only
