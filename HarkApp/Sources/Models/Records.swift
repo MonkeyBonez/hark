@@ -25,7 +25,7 @@ struct Podcast: Codable, Identifiable, Equatable, FetchableRecord, PersistableRe
     static let episodes = hasMany(Episode.self)
 }
 
-struct Episode: Codable, Identifiable, Equatable, FetchableRecord, PersistableRecord {
+struct Episode: Codable, Identifiable, Equatable, Sendable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "episode"
 
     enum DownloadState: String, Codable {
@@ -56,7 +56,7 @@ struct Episode: Codable, Identifiable, Equatable, FetchableRecord, PersistableRe
 /// A snip: a raw captured time window (PRD §8.4). Time is raw milliseconds, never a segment FK
 /// (PRD §9.4). The AI fields (title/category/takeaways) are written by on-device enrichment once
 /// transcript text covers the window — lifecycle: captured → enriched.
-struct Snip: Codable, Identifiable, Equatable, FetchableRecord, PersistableRecord {
+struct Snip: Codable, Identifiable, Equatable, Sendable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "snip"
 
     var id: String

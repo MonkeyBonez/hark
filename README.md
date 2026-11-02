@@ -18,3 +18,32 @@ xcodegen generate   # required again after adding source files
 ```
 
 Open `HarkApp.xcodeproj` and run the `Hark` scheme on an iOS 26 device.
+
+## Find a moment
+
+The **Find** tab searches saved transcript lines and snips locally with the existing SQLite/GRDB
+FTS5 index. It searches snip titles and takeaways, plus transcript lines that overlap a saved
+snip. Enter whole words: all words must occur in the same transcript line or snip's indexed
+metadata. This is lexical search, not semantic or prefix search. Edits and deletions are reflected
+in the index; results survive relaunch. Each section shows up to 50 matches.
+
+Tapping a result opens the player at the stored transcript-line or snip start. Downloaded audio is
+preferred; otherwise the player's existing episode stream is used. Missing or unplayable audio and
+saved times beyond the audio are reported instead of pretending playback succeeded. Search never
+sends transcripts or audio to a service. While audio opens, a progress row offers **Cancel**;
+changing the query or leaving Find also cancels the pending opening. If a seek has already
+replaced the player, cancellation restores the previous episode and playback state.
+
+For simulator testing only, the Debug launch environment variable `HARK_SEARCH_FIXTURE=1` seeds
+clearly labelled, authored synthetic text and a locally generated tone into the app's own data
+container. It is not a transcription or an inference result and needs no model weights. A
+search-only simulator build can use an empty `HarkApp/Models` directory; without bundled weights,
+the app's existing LLM enrichment path may try to download them if invoked, so the fixture marks
+its text and snip as already supplied and does not invoke that path. The optional
+`HARK_SEARCH_DELAY_MS` fixture setting (up to 15,000 ms) simulates a late, non-cooperative audio
+response for cancellation tests; `HARK_SEARCH_DELAY_STAGE=seek` moves the delay to the seek.
+Both are available only in Debug simulator builds.
+
+Search uses the project's existing [GRDB](https://github.com/groue/GRDB.swift) (MIT license) and
+SQLite [FTS5](https://www.sqlite.org/fts5.html) (SQLite's deliverable code is
+[public domain](https://www.sqlite.org/copyright.html)); no additional search dependency is bundled.

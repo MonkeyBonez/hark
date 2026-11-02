@@ -14,17 +14,38 @@ final class PlayerEngine: ObservableObject {
 
     @Published private(set) var currentEpisode: Episode?
     @Published private(set) var currentPodcast: Podcast?
+    @Published private(set) var currentSearchSnip: Snip?
     @Published private(set) var isPlaying = false
     @Published private(set) var currentTime: Double = 0
     @Published private(set) var duration: Double = 0
     @Published var rate: Float = 1.0 { didSet { applyRate() } }
     @Published var snipToastText: String?
+    @Published var playbackError: String?
 
     private let player = AVPlayer()
     private let db = AppDatabase.shared
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
+    private var itemStatusObservation: NSKeyValueObservation?
+    private var playbackFailureTask: Task<Void, Never>?
     private var lastPersist = Date.distantPast
+    private var playbackRequestID = 0
+    private var pendingSearch: PendingSearch?
+
+    private struct PlaybackSnapshot {
+        let item: AVPlayerItem?
+        let episode: Episode?
+        let podcast: Podcast?
+        let snip: Snip?
+        let time: Double
+        let duration: Double
+        let isPlaying: Bool
+    }
+
+    private struct PendingSearch {
+        let item: AVPlayerItem
+        let previous: PlaybackSnapshot
+    }
 
     /// The window a lock-screen snip captures: "what I just heard", boundary re-snap comes in P3.
     private let snipTrailingSeconds: Double = 30
@@ -37,16 +58,150 @@ final class PlayerEngine: ObservableObject {
 
     // MARK: Transport
 
-    func play(_ episode: Episode, resume: Bool = true) {
-        persistPosition(force: true)   // save the outgoing episode's position first
+    @discardableResult
+    func play(_ episode: Episode, resume: Bool = true) -> Bool {
+        playbackRequestID &+= 1
+        restorePendingSearch()
+        guard let url = PlaybackSource.resolve(localURL: DownloadManager.localURL(for: episode),
+                                               remoteURL: episode.audioURL) else {
+            playbackError = "No playable audio is available for this episode."
+            return false
+        }
+        playbackError = nil
+        prepare(episode, item: AVPlayerItem(url: url))
+        if resume, episode.playbackPositionSeconds > 5 {
+            player.seek(to: CMTime(seconds: episode.playbackPositionSeconds, preferredTimescale: 600))
+        }
+        startPlayback(episode)
+        return true
+    }
 
-        let url = DownloadManager.localURL(for: episode) ?? URL(string: episode.audioURL)
-        guard let url else { return }
+    /// Search waits for the real asset and an exact seek before presenting the player.
+    func playFromSearch(_ destination: MomentDestination) async -> Bool {
+        playbackRequestID &+= 1
+        restorePendingSearch()
+        let requestID = playbackRequestID
+        let episode = destination.episode
+        playbackError = nil
+        guard let url = PlaybackSource.resolve(localURL: DownloadManager.localURL(for: episode),
+                                               remoteURL: episode.audioURL) else {
+            playbackError = "No playable audio is available for this episode."
+            return false
+        }
+        #if DEBUG && targetEnvironment(simulator)
+        await SearchDebugFixture.delayOpeningIfRequested(stage: "asset")
+        guard !Task.isCancelled, playbackRequestID == requestID else { return false }
+        #endif
+        let asset = AVURLAsset(url: url)
+        do {
+            let playable = try await asset.load(.isPlayable)
+            guard !Task.isCancelled, playbackRequestID == requestID else { return false }
+            guard playable else {
+                playbackError = "This episode's audio cannot be played."
+                return false
+            }
+        } catch {
+            guard !Task.isCancelled, playbackRequestID == requestID else { return false }
+            playbackError = "Couldn't open this episode's audio. Check its download or connection."
+            return false
+        }
 
+        let target = Double(destination.startMs) / 1000
+        let assetDuration = try? await asset.load(.duration)
+        guard !Task.isCancelled, playbackRequestID == requestID else { return false }
+        if let assetDuration, assetDuration.isNumeric, assetDuration.seconds.isFinite,
+           target >= assetDuration.seconds {
+            playbackError = "The saved moment is beyond the available audio."
+            return false
+        }
+
+        let item = AVPlayerItem(asset: asset)
+        let previous = playbackSnapshot()
+        prepare(episode, item: item)
+        pendingSearch = PendingSearch(item: item, previous: previous)
+        if let assetDuration, assetDuration.isNumeric, assetDuration.seconds.isFinite {
+            duration = assetDuration.seconds
+        }
+        #if DEBUG && targetEnvironment(simulator)
+        await SearchDebugFixture.delayOpeningIfRequested(stage: "seek")
+        guard playbackRequestID == requestID, player.currentItem === item else { return false }
+        if Task.isCancelled {
+            restorePendingSearch()
+            return false
+        }
+        #endif
+        let sought = await player.seek(to: CMTime(seconds: target, preferredTimescale: 1000),
+                                       toleranceBefore: .zero, toleranceAfter: .zero)
+        guard playbackRequestID == requestID, player.currentItem === item else { return false }
+        if Task.isCancelled {
+            restorePendingSearch()
+            return false
+        }
+        let actual = player.currentTime().seconds
+        guard sought, actual.isFinite, abs(actual - target) < 0.25 else {
+            restorePendingSearch()
+            playbackError = "Couldn't seek to this saved moment in the available audio."
+            return false
+        }
+        pendingSearch = nil
+        currentTime = actual
+        currentSearchSnip = destination.snip
+        startPlayback(episode)
+        return true
+    }
+
+    /// Cancel before an asset or seek completes; restore the outgoing player if it was replaced.
+    func cancelSearchOpening() {
+        playbackRequestID &+= 1
+        if pendingSearch != nil { playbackError = nil }
+        restorePendingSearch()
+    }
+
+    private func playbackSnapshot() -> PlaybackSnapshot {
+        let actual = player.currentTime().seconds
+        return PlaybackSnapshot(item: player.currentItem, episode: currentEpisode,
+                                podcast: currentPodcast, snip: currentSearchSnip,
+                                time: actual.isFinite && actual >= 0 ? actual : currentTime,
+                                duration: duration, isPlaying: isPlaying)
+    }
+
+    private func restorePendingSearch() {
+        guard let pending = pendingSearch else { return }
+        pendingSearch = nil
+        guard player.currentItem === pending.item else { return }
+        pending.item.cancelPendingSeeks()
+        player.pause()
+        itemStatusObservation = nil
+        playbackFailureTask?.cancel()
+        playbackFailureTask = nil
+        player.replaceCurrentItem(with: pending.previous.item)
+        currentEpisode = pending.previous.episode
+        currentPodcast = pending.previous.podcast
+        currentSearchSnip = pending.previous.snip
+        currentTime = pending.previous.time
+        duration = pending.previous.duration
+        isPlaying = pending.previous.item != nil && pending.previous.isPlaying
+        if let item = pending.previous.item {
+            observeItem(item)
+            if pending.previous.time > 0 {
+                player.seek(to: CMTime(seconds: pending.previous.time, preferredTimescale: 600))
+            }
+            if isPlaying { player.playImmediately(atRate: rate) }
+        }
+        updateNowPlaying()
+    }
+
+    private func prepare(_ episode: Episode, item: AVPlayerItem) {
+        persistPosition(force: true)
+        player.pause()
+        isPlaying = false
         currentEpisode = episode
         currentPodcast = try? db.dbQueue.read { try Podcast.fetchOne($0, key: episode.podcastFeedURL) }
-        let item = AVPlayerItem(url: url)
+        currentSearchSnip = nil
+        currentTime = 0
+        duration = episode.durationSeconds ?? 0
         player.replaceCurrentItem(with: item)
+        observeItem(item)
 
         if endObserver == nil {
             endObserver = NotificationCenter.default.addObserver(
@@ -55,13 +210,35 @@ final class PlayerEngine: ObservableObject {
                 Task { @MainActor in self?.episodeFinished() }
             }
         }
+    }
 
-        if resume, episode.playbackPositionSeconds > 5 {
-            player.seek(to: CMTime(seconds: episode.playbackPositionSeconds, preferredTimescale: 600))
+    private func observeItem(_ item: AVPlayerItem) {
+        itemStatusObservation = item.observe(\.status, options: [.new]) { [weak self] item, _ in
+            guard item.status == .failed else { return }
+            Task { @MainActor [weak self] in
+                guard let self, self.player.currentItem === item else { return }
+                self.isPlaying = false
+                self.playbackError = "This episode's audio couldn't be played. Check its download or connection."
+                self.updateNowPlaying()
+            }
         }
+        playbackFailureTask?.cancel()
+        playbackFailureTask = Task { [weak self, weak item] in
+            guard let item else { return }
+            for await _ in NotificationCenter.default.notifications(
+                named: AVPlayerItem.failedToPlayToEndTimeNotification, object: item
+            ) {
+                guard let self, self.player.currentItem === item else { return }
+                self.isPlaying = false
+                self.playbackError = "This episode's audio stopped unexpectedly. Check its download or connection."
+                self.updateNowPlaying()
+            }
+        }
+    }
+
+    private func startPlayback(_ episode: Episode) {
         player.playImmediately(atRate: rate)
         isPlaying = true
-        duration = episode.durationSeconds ?? 0
         markPlayed(episode)
         updateNowPlaying()
 
@@ -208,11 +385,14 @@ final class PlayerEngine: ObservableObject {
     private func installTimeObserver() {
         timeObserver = player.addPeriodicTimeObserver(
             forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main
-        ) { [weak self] time in
+        ) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
+                let time = self.player.currentTime()
+                guard time.isNumeric, time.seconds.isFinite, time.seconds >= 0 else { return }
                 self.currentTime = time.seconds
-                if let item = self.player.currentItem, item.duration.isNumeric {
+                if let item = self.player.currentItem, item.duration.isNumeric,
+                   item.duration.seconds.isFinite {
                     self.duration = item.duration.seconds
                 }
                 self.persistPosition()
@@ -222,6 +402,7 @@ final class PlayerEngine: ObservableObject {
 
     /// Persist position at most every 5s while playing (and on pause/switch with force).
     private func persistPosition(force: Bool = false) {
+        guard pendingSearch == nil else { return }
         guard let ep = currentEpisode, currentTime > 0 else { return }
         guard force || Date().timeIntervalSince(lastPersist) > 5 else { return }
         lastPersist = Date()

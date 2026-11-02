@@ -1,8 +1,8 @@
 import Foundation
 import GRDB
 
-/// GRDB/SQLite — committed in PRD §9.1 (timestamped segments are relational; FTS5 arrives with
-/// transcripts in P2). One DatabaseQueue for the whole app; ValueObservation drives the UI.
+/// GRDB/SQLite — timestamped segments are relational and indexed with FTS5.
+/// One DatabaseQueue for the whole app; ValueObservation drives the UI.
 final class AppDatabase: Sendable {
     static let shared = try! AppDatabase()
 
@@ -15,7 +15,7 @@ final class AppDatabase: Sendable {
             .appendingPathComponent("Hark", isDirectory: true)
         try fm.createDirectory(at: dir, withIntermediateDirectories: true)
         dbQueue = try DatabaseQueue(path: dir.appendingPathComponent("hark.sqlite").path)
-        try migrator.migrate(dbQueue)
+        try Self.migrator.migrate(dbQueue)
     }
 
     /// Directory downloaded audio lives in. Filenames only in the DB — the container path moves.
@@ -27,7 +27,7 @@ final class AppDatabase: Sendable {
         return dir
     }
 
-    private var migrator: DatabaseMigrator {
+    static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1") { db in
             try db.create(table: "podcast") { t in
@@ -141,6 +141,15 @@ final class AppDatabase: Sendable {
             try db.alter(table: "snip") { t in
                 t.add(column: "category", .text)
                 t.add(column: "takeawaysJSON", .text)
+            }
+        }
+
+        // Existing snips are indexed during migration; GRDB keeps the index synchronized.
+        migrator.registerMigration("v5-snip-search") { db in
+            try db.create(virtualTable: "snip_ft", using: FTS5()) { t in
+                t.synchronize(withTable: "snip")
+                t.column("title")
+                t.column("takeawaysJSON")
             }
         }
         return migrator

@@ -9,6 +9,7 @@ struct PlayerView: View {
     @EnvironmentObject var player: PlayerEngine
     @EnvironmentObject var processing: ProcessingService
     @EnvironmentObject var downloads: DownloadManager
+    @Environment(\.dismiss) private var dismiss
 
     @State private var scrubbing = false
     @State private var scrubTime: Double = 0
@@ -28,10 +29,26 @@ struct PlayerView: View {
 
     var body: some View {
         VStack(spacing: 18) {
-            Capsule().fill(.tertiary).frame(width: 36, height: 5).padding(.top, 10)
+            HStack {
+                Spacer()
+                Capsule().fill(.tertiary).frame(width: 36, height: 5)
+                Spacer()
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.down")
+                }
+                .accessibilityLabel("Close player")
+                .accessibilityIdentifier("player.close")
+            }
+            .padding(.horizontal, 20).padding(.top, 10)
 
             if lines.isEmpty { heroArea } else { transcriptArea }
 
+            if let snip = player.currentSearchSnip {
+                Text("Snip · \(snip.title ?? PlayerEngine.clock(snip.startMs))")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("player.selectedSnip")
+            }
             scrubber
             transport
             actionRow
@@ -47,6 +64,14 @@ struct PlayerView: View {
             if let ep = episode {
                 EpisodeSnipsView(episode: ep)
             }
+        }
+        .alert("Audio unavailable", isPresented: Binding(
+            get: { player.playbackError != nil },
+            set: { if !$0 { player.playbackError = nil } }
+        )) {
+            Button("OK") { player.playbackError = nil }
+        } message: {
+            Text(player.playbackError ?? "")
         }
     }
 
@@ -176,8 +201,11 @@ struct PlayerView: View {
                 scrubbing = editing
                 if !editing { player.seek(to: scrubTime) }
             }
+            .accessibilityLabel("Playback position")
             HStack {
                 Text(PlayerEngine.clock(Int(player.currentTime * 1000)))
+                    .accessibilityIdentifier("player.elapsedTime")
+                    .accessibilityValue(Text(String(format: "%.2f seconds", player.currentTime)))
                 Spacer()
                 Text("-" + PlayerEngine.clock(Int(max(0, player.duration - player.currentTime) * 1000)))
             }
@@ -196,6 +224,8 @@ struct PlayerView: View {
                 Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 68))
             }
+            .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
+            .accessibilityIdentifier("player.playPause")
             Button { player.skip(30) } label: {
                 Image(systemName: "goforward.30").font(.title)
             }
