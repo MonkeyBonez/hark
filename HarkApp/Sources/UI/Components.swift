@@ -59,6 +59,9 @@ struct MiniPlayerBar: View {
             Button { player.togglePlayPause() } label: {
                 Image(systemName: player.isPlaying ? "pause.fill" : "play.fill").font(.title3)
             }
+            .accessibilityLabel(player.isPlaying ? "Pause mini player" : "Play mini player")
+            .accessibilityIdentifier("player.mini.playPause")
+            .accessibilityValue(Text(String(format: "%.2f seconds", player.currentTime)))
             .padding(.trailing, 2)
         }
         .padding(.horizontal, 12)

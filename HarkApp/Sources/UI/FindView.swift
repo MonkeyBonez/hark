@@ -7,8 +7,14 @@ struct FindView: View {
 
     @State private var query = ""
     @State private var state: SearchState = .prompt
-    @State private var openingID: String?
+    @State private var opening: Opening?
+    @State private var openingTask: Task<Void, Never>?
     @State private var destinationError: String?
+
+    private struct Opening: Identifiable {
+        let id = UUID()
+        let result: MomentSearchResult
+    }
 
     private enum SearchState {
         case prompt, invalid, tooLong, loading, results(MomentSearchResults), failed
@@ -18,9 +24,27 @@ struct FindView: View {
         NavigationStack {
             content
                 .navigationTitle("Find")
-                .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always),
+                .searchable(text: searchText, placement: .navigationBarDrawer(displayMode: .always),
                             prompt: "Search transcripts and snips")
                 .task(id: query) { await observe(query) }
+                .safeAreaInset(edge: .top) {
+                    if let opening {
+                        HStack(spacing: 12) {
+                            ProgressView()
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Opening audio").font(.subheadline.weight(.semibold))
+                                Text(opening.result.episodeTitle)
+                                    .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                            Spacer()
+                            Button("Cancel") { cancelOpening() }
+                                .accessibilityIdentifier("search.cancelOpening")
+                        }
+                        .padding(.horizontal, 16).padding(.vertical, 10)
+                        .background(.thinMaterial)
+                    }
+                }
+                .onDisappear { cancelOpening() }
                 .alert("Moment unavailable", isPresented: Binding(
                     get: { destinationError != nil },
                     set: { if !$0 { destinationError = nil } }
@@ -30,6 +54,17 @@ struct FindView: View {
                     Text(destinationError ?? "")
                 }
         }
+    }
+
+    private var searchText: Binding<String> {
+        Binding(
+            get: { query },
+            set: { value in
+                guard value != query else { return }
+                cancelOpening()
+                query = value
+            }
+        )
     }
 
     @ViewBuilder private var content: some View {
@@ -83,7 +118,7 @@ struct FindView: View {
 
     private func row(_ result: MomentSearchResult) -> some View {
         Button {
-            Task { await open(result) }
+            startOpening(result)
         } label: {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
@@ -113,7 +148,7 @@ struct FindView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(openingID != nil)
+        .disabled(opening != nil)
         .accessibilityIdentifier("search.\(result.kind.rawValue).\(result.recordID)")
         .accessibilityHint("Open the player at this saved time")
     }
@@ -139,19 +174,42 @@ struct FindView: View {
         }
     }
 
-    @MainActor private func open(_ result: MomentSearchResult) async {
-        guard openingID == nil else { return }
-        openingID = result.id
-        defer { openingID = nil }
+    @MainActor private func startOpening(_ result: MomentSearchResult) {
+        guard opening == nil else { return }
+        let request = Opening(result: result)
+        opening = request
+        openingTask = Task { await open(request) }
+    }
+
+    @MainActor private func cancelOpening() {
+        guard opening != nil else { return }
+        openingTask?.cancel()
+        player.cancelSearchOpening()
+        openingTask = nil
+        opening = nil
+    }
+
+    @MainActor private func open(_ request: Opening) async {
+        defer {
+            if opening?.id == request.id {
+                opening = nil
+                openingTask = nil
+            }
+        }
         do {
             guard let destination = try await AppDatabase.shared.dbQueue.read({ db in
-                try MomentSearch.destination(for: result, in: db)
+                try MomentSearch.destination(for: request.result, in: db)
             }) else {
+                guard !Task.isCancelled, opening?.id == request.id else { return }
                 destinationError = "This transcript line or snip was changed or removed."
                 return
             }
-            if await player.playFromSearch(destination) { showPlayer = true }
+            guard !Task.isCancelled, opening?.id == request.id else { return }
+            let played = await player.playFromSearch(destination)
+            guard !Task.isCancelled, opening?.id == request.id else { return }
+            if played { showPlayer = true }
         } catch {
+            guard !Task.isCancelled, opening?.id == request.id else { return }
             destinationError = "Couldn't read this saved moment. Try the search again."
         }
     }

@@ -7,6 +7,19 @@ import GRDB
 enum SearchDebugFixture {
     private enum FixtureError: Error { case audioFormat }
 
+    /// Simulates an asset request that may finish after its caller is cancelled.
+    static func delayOpeningIfRequested(stage: String) async {
+        let env = ProcessInfo.processInfo.environment
+        guard env["HARK_SEARCH_FIXTURE"] == "1",
+              (env["HARK_SEARCH_DELAY_STAGE"] ?? "asset") == stage,
+              let value = env["HARK_SEARCH_DELAY_MS"], let milliseconds = Int(value),
+              (1...15_000).contains(milliseconds) else { return }
+        let response = Task.detached {
+            try? await Task.sleep(for: .milliseconds(milliseconds))
+        }
+        _ = await response.value
+    }
+
     static func seed() throws {
         let filename = "hark-search-synthetic.wav"
         let audioURL = AppDatabase.audioDirectory.appendingPathComponent(filename)
